@@ -51,30 +51,30 @@ export function CosmicCoachModal() {
     <div className="modal-overlay" onClick={() => setActiveModal(null)}>
       <div className="modal-dialog" style={{ maxWidth: '640px' }} onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Sparkles size={20} color="#c084fc" />
-            <h2 className="modal-title">AI Habit Coach • Cosmic Telemetry</h2>
+          <div className="flex items-center gap-2">
+            <Sparkles size={18} className="text-slate-400" />
+            <h2 className="modal-title">AI Habit Coach • Celestial Diagnostics</h2>
           </div>
-          <button className="drawer-close-btn" onClick={() => setActiveModal(null)}>
-            <X size={18} />
+          <button className="drawer-close-btn text-slate-400 hover:text-slate-200" onClick={() => setActiveModal(null)}>
+            <X size={16} />
           </button>
         </div>
 
         <div className="modal-body" style={{ minHeight: '360px', maxHeight: '55vh' }}>
           {/* Mode Switcher */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', background: 'rgba(30, 41, 59, 0.4)', borderRadius: '10px' }}>
-            <span style={{ fontSize: '12px', color: '#94a3b8' }}>Coach Tone Mode:</span>
-            <div style={{ display: 'flex', gap: '6px' }}>
+          <div className="flex items-center justify-between p-2 px-3 bg-white/[0.02] border border-white/5 rounded-lg">
+            <span className="text-xs text-slate-400 font-medium">Coach Tone Mode:</span>
+            <div className="flex gap-1.5">
               <button
                 className={`cosmic-btn ${mode === 'cosmic' ? 'cosmic-btn-primary' : ''}`}
-                style={{ padding: '4px 10px', fontSize: '11px' }}
+                style={{ padding: '3px 9px', fontSize: '11px' }}
                 onClick={() => setMode('cosmic')}
               >
-                ✨ Cosmic Metaphor
+                🔭 Cosmic Metaphor
               </button>
               <button
                 className={`cosmic-btn ${mode === 'practical' ? 'cosmic-btn-primary' : ''}`}
-                style={{ padding: '4px 10px', fontSize: '11px' }}
+                style={{ padding: '3px 9px', fontSize: '11px' }}
                 onClick={() => setMode('practical')}
               >
                 ⚡ Practical Coaching
@@ -83,44 +83,24 @@ export function CosmicCoachModal() {
           </div>
 
           {/* Chat Messages */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', flex: 1, overflowY: 'auto' }}>
+          <div className="flex flex-col gap-3 flex-1 overflow-y-auto pr-1">
             {messages.map((m, idx) => (
               <div
                 key={idx}
-                style={{
-                  display: 'flex',
-                  gap: '10px',
-                  alignSelf: m.role === 'user' ? 'flex-end' : 'flex-start',
-                  maxWidth: '85%'
-                }}
+                className={`flex gap-2.5 max-w-[88%] ${m.role === 'user' ? 'self-end' : 'self-start'}`}
               >
                 {m.role === 'assistant' && (
-                  <div
-                    style={{
-                      width: '28px',
-                      height: '28px',
-                      borderRadius: '50%',
-                      background: 'linear-gradient(135deg, #a855f7, #6366f1)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      flexShrink: 0
-                    }}
-                  >
-                    <Bot size={16} color="#fff" />
+                  <div className="w-6 h-6 rounded-full bg-slate-800 border border-white/10 flex items-center justify-center shrink-0 mt-0.5">
+                    <Bot size={13} className="text-slate-300" />
                   </div>
                 )}
                 <div
-                  style={{
-                    padding: '12px 16px',
-                    borderRadius: '14px',
-                    fontSize: '13px',
-                    lineHeight: '1.5',
-                    background: m.role === 'user' ? 'rgba(14, 165, 233, 0.25)' : 'rgba(30, 41, 59, 0.7)',
-                    border: m.role === 'user' ? '1px solid rgba(56, 189, 248, 0.4)' : '1px solid rgba(255, 255, 255, 0.08)',
-                    color: '#f8fafc',
-                    whiteSpace: 'pre-line'
-                  }}
+                  className={`p-3 px-3.5 rounded-xl text-xs leading-relaxed ${
+                    m.role === 'user'
+                      ? 'bg-blue-600/25 border border-blue-500/40 text-slate-100'
+                      : 'bg-white/[0.03] border border-white/5 text-slate-200'
+                  }`}
+                  style={{ whiteSpace: 'pre-line' }}
                 >
                   {m.text}
                 </div>

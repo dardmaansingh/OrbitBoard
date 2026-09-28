@@ -14,45 +14,45 @@ export function CosmicAnalyticsModal() {
 
   return (
     <div className="modal-overlay" onClick={() => setActiveModal(null)}>
-      <div className="modal-dialog" style={{ maxWidth: '680px' }} onClick={(e) => e.stopPropagation()}>
+      <div className="modal-dialog" style={{ maxWidth: '640px' }} onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <BarChart3 size={20} color="#38bdf8" />
+          <div className="flex items-center gap-2">
+            <BarChart3 size={18} className="text-slate-400" />
             <h2 className="modal-title">Habit Analytics & Planetary Rings</h2>
           </div>
-          <button className="drawer-close-btn" onClick={() => setActiveModal(null)}>
-            <X size={18} />
+          <button className="drawer-close-btn text-slate-400 hover:text-slate-200" onClick={() => setActiveModal(null)}>
+            <X size={16} />
           </button>
         </div>
 
         <div className="modal-body">
           {/* Top High-level KPIs */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
-            <div className="stat-card" style={{ padding: '16px 12px' }}>
-              <span className="val" style={{ color: '#38bdf8' }}>{totalLogs}</span>
+          <div className="grid grid-cols-3 gap-2.5">
+            <div className="stat-card">
+              <span className="val text-slate-100">{totalLogs}</span>
               <span className="lbl">Total Completed Logs</span>
             </div>
-            <div className="stat-card" style={{ padding: '16px 12px' }}>
-              <span className="val" style={{ color: '#10b981' }}>{avgCompletion}%</span>
+            <div className="stat-card">
+              <span className="val text-emerald-400">{avgCompletion}%</span>
               <span className="lbl">System-Wide Consistency</span>
             </div>
-            <div className="stat-card" style={{ padding: '16px 12px' }}>
-              <span className="val" style={{ color: '#f59e0b' }}>{habits.length}</span>
+            <div className="stat-card">
+              <span className="val text-amber-400">{habits.length}</span>
               <span className="lbl">Active Solar Bodies</span>
             </div>
           </div>
 
-          {/* Section: Circular Apple-Watch Style Progress Rings (Blueprint 2.4) */}
-          <div style={{ marginTop: '10px' }}>
-            <h3 style={{ fontSize: '14px', fontWeight: '600', color: '#f8fafc', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <Award size={16} color="#fbbf24" />
-              Monthly Orbit Progress Rings (Apple Watch Inspired)
+          {/* Section: Circular Apple-Watch Style Progress Rings */}
+          <div className="mt-1">
+            <h3 className="text-xs font-semibold text-slate-200 mb-1 flex items-center gap-1.5 uppercase tracking-wider">
+              <Award size={14} className="text-amber-500" />
+              Monthly Orbit Progress Rings
             </h3>
-            <p style={{ fontSize: '12px', color: '#94a3b8', marginBottom: '16px' }}>
-              Real-time monthly completion percentage directly scaling each planet's physical mass.
+            <p className="text-[11.5px] text-slate-400 mb-3">
+              Real-time completion percentage directly determining each planet's physical mass and orbit momentum.
             </p>
 
-            <div className="rings-container" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '16px' }}>
+            <div className="rings-container">
               {habits.map((habit) => {
                 const percent = Math.min(100, Math.max(0, habit.completionRate));
                 const strokeDasharray = `${percent}, 100`;
@@ -75,21 +75,12 @@ export function CosmicAnalyticsModal() {
                       </text>
                     </svg>
                     <span
-                      style={{
-                        fontSize: '11px',
-                        fontWeight: '600',
-                        color: '#f8fafc',
-                        textAlign: 'center',
-                        maxWidth: '120px',
-                        whiteSpace: 'nowrap',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis'
-                      }}
+                      className="text-[11.5px] font-medium text-slate-200 text-center max-w-[110px] truncate"
                       title={habit.name}
                     >
                       {habit.name}
                     </span>
-                    <span style={{ fontSize: '10px', color: '#f97316', fontWeight: '700' }}>
+                    <span className="text-[10px] text-amber-500 font-semibold">
                       🔥 {habit.streak}d streak
                     </span>
                   </div>
@@ -99,33 +90,28 @@ export function CosmicAnalyticsModal() {
           </div>
 
           {/* Section: Streak Velocity Breakdown */}
-          <div style={{ marginTop: '16px' }}>
-            <h3 style={{ fontSize: '14px', fontWeight: '600', color: '#f8fafc', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <TrendingUp size={16} color="#34d399" />
+          <div className="mt-2">
+            <h3 className="text-xs font-semibold text-slate-200 mb-2 flex items-center gap-1.5 uppercase tracking-wider">
+              <TrendingUp size={14} className="text-emerald-500" />
               Orbital Velocity & Streak Health
             </h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <div className="flex flex-col gap-1.5">
               {habits.map((h) => (
                 <div
                   key={h.id}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: '10px 14px',
-                    background: 'rgba(30, 41, 59, 0.4)',
-                    borderRadius: '10px',
-                    border: '1px solid rgba(255, 255, 255, 0.05)'
-                  }}
+                  className="flex items-center justify-between p-2.5 px-3 bg-white/[0.02] hover:bg-white/[0.04] rounded-lg border border-white/5 transition-colors"
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <div style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: h.color }} />
-                    <span style={{ fontSize: '13px', fontWeight: '500', color: '#f8fafc' }}>{h.name}</span>
+                  <div className="flex items-center gap-2.5">
+                    <div
+                      className="planet-orb-indicator"
+                      style={{ backgroundColor: h.color, color: h.color }}
+                    />
+                    <span className="text-xs font-medium text-slate-200">{h.name}</span>
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '16px', fontSize: '12px' }}>
-                    <span style={{ color: '#94a3b8' }}>Orbit #{h.orbitDistance}AU</span>
-                    <span style={{ color: '#f97316', fontWeight: '700' }}>🔥 {h.streak} Days</span>
-                    <span style={{ color: '#38bdf8', fontWeight: '600' }}>{h.completionRate}% Mass</span>
+                  <div className="flex items-center gap-3 text-xs">
+                    <span className="text-slate-400">Orbit #{h.orbitDistance}AU</span>
+                    <span className="text-amber-500 font-semibold">🔥 {h.streak}d</span>
+                    <span className="text-slate-300 font-medium">{h.completionRate}% Mass</span>
                   </div>
                 </div>
               ))}

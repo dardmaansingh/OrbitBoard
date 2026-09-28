@@ -88,6 +88,27 @@ function generateSampleLogs(habitId, streak, completionRate) {
   return logs;
 }
 
+// Natural Earth & Celestial Palette (Neutral, startup-like, Google Earth inspired)
+const NATURAL_COLOR_MAP = {
+  '#10b981': { color: '#2563eb', atmosphereColor: '#93c5fd' }, // Terran Blue & Cloud White
+  '#06b6d4': { color: '#0284c7', atmosphereColor: '#7dd3fc' }, // Atmospheric Azure
+  '#a855f7': { color: '#6366f1', atmosphereColor: '#a5b4fc' }, // Celestial Indigo
+  '#14b8a6': { color: '#0d9488', atmosphereColor: '#5eead4' }, // Deep Glacial Teal
+  '#f43f5e': { color: '#c2410c', atmosphereColor: '#fdba74' }, // Mars Terracotta
+  '#f59e0b': { color: '#d97706', atmosphereColor: '#fde68a' }  // Sandstone Ochre
+};
+
+function normalizeHabitColor(h) {
+  if (NATURAL_COLOR_MAP[h.color]) {
+    return {
+      ...h,
+      color: NATURAL_COLOR_MAP[h.color].color,
+      atmosphereColor: NATURAL_COLOR_MAP[h.color].atmosphereColor
+    };
+  }
+  return h;
+}
+
 const DEFAULT_HABITS = [
   {
     id: 'habit-1',
@@ -100,8 +121,8 @@ const DEFAULT_HABITS = [
     streak: 18,
     bestStreak: 25,
     completionRate: 88,
-    color: '#10b981',
-    atmosphereColor: '#34d399',
+    color: '#2563eb', // Earth Blue
+    atmosphereColor: '#93c5fd', // Soft atmospheric haze
     planetRadius: 1.4,
     description: '30-minute sunrise outdoor running to boost cardiovascular energy and dopamine.'
   },
@@ -109,15 +130,15 @@ const DEFAULT_HABITS = [
     id: 'habit-2',
     name: 'Deep Focus Coding',
     category: 'Focus',
-    planetType: 'azure-gas', // Neptune-like deep azure with swirling atmospheric storm bands
+    planetType: 'azure-gas', // Deep azure atmospheric giant
     frequency: 'Daily',
     orbitDistance: 18,
     baseSpeed: 0.65,
     streak: 24,
     bestStreak: 30,
     completionRate: 94,
-    color: '#06b6d4',
-    atmosphereColor: '#38bdf8',
+    color: '#0284c7', // Slate Azure
+    atmosphereColor: '#7dd3fc',
     planetRadius: 1.7,
     description: '2 uninterrupted hours building core systems and solving algorithms.'
   },
@@ -125,15 +146,15 @@ const DEFAULT_HABITS = [
     id: 'habit-3',
     name: 'Creative Writing & Notes',
     category: 'Creativity',
-    planetType: 'purple-ringed', // Amethyst nebula world with iridescent cosmic dust rings
+    planetType: 'purple-ringed', // Indigo celestial world with subtle rings
     frequency: 'Daily',
     orbitDistance: 24,
     baseSpeed: 0.5,
     streak: 9,
     bestStreak: 15,
     completionRate: 72,
-    color: '#a855f7',
-    atmosphereColor: '#c084fc',
+    color: '#6366f1', // Refined Indigo Slate
+    atmosphereColor: '#a5b4fc',
     planetRadius: 1.5,
     hasRings: true,
     description: 'Daily essay drafting, architecture sketching, and mental model journaling.'
@@ -142,14 +163,14 @@ const DEFAULT_HABITS = [
     id: 'habit-4',
     name: 'Mindfulness & Meditation',
     category: 'Mindfulness',
-    planetType: 'opal-ice', // Crystalline ice world with glowing cyan fractures and polar caps
+    planetType: 'opal-ice', // Crystalline glacial oceanic world
     frequency: 'Daily',
     orbitDistance: 30,
     baseSpeed: 0.42,
     streak: 14,
     bestStreak: 21,
     completionRate: 82,
-    color: '#14b8a6',
+    color: '#0d9488', // Glacial Teal
     atmosphereColor: '#5eead4',
     planetRadius: 1.3,
     description: '15-minute guided breathwork and meditation practice at dusk.'
@@ -158,15 +179,15 @@ const DEFAULT_HABITS = [
     id: 'habit-5',
     name: 'Strength & Core Workout',
     category: 'Fitness',
-    planetType: 'crimson-ember', // Mars-like volcanic world with glowing tectonic fissures
+    planetType: 'crimson-ember', // Mars-like volcanic terracotta world
     frequency: 'Daily',
     orbitDistance: 36,
     baseSpeed: 0.35,
     streak: 7,
     bestStreak: 19,
     completionRate: 68,
-    color: '#f43f5e',
-    atmosphereColor: '#fb7185',
+    color: '#c2410c', // Mars Terracotta
+    atmosphereColor: '#fdba74',
     planetRadius: 1.4,
     description: 'High intensity resistance training and core stability regimen.'
   },
@@ -174,15 +195,15 @@ const DEFAULT_HABITS = [
     id: 'habit-6',
     name: 'Read 30 Mins Non-Fiction',
     category: 'Knowledge',
-    planetType: 'saturn-gold', // Majestic golden gas giant with extensive planetary ring system
+    planetType: 'saturn-gold', // Warm sandstone ochre giant with natural dust rings
     frequency: 'Daily',
     orbitDistance: 43,
     baseSpeed: 0.28,
     streak: 31,
     bestStreak: 45,
     completionRate: 96,
-    color: '#f59e0b',
-    atmosphereColor: '#fde047',
+    color: '#d97706', // Sandstone Ochre
+    atmosphereColor: '#fde68a',
     planetRadius: 1.9,
     hasRings: true,
     description: 'Reading high-signal books in computer science, philosophy, and history.'
@@ -193,7 +214,11 @@ export function HabitProvider({ children }) {
   const [habits, setHabits] = useState(() => {
     try {
       const saved = localStorage.getItem('orbitboard_habits_v2');
-      return saved ? JSON.parse(saved) : DEFAULT_HABITS;
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        return parsed.map(normalizeHabitColor);
+      }
+      return DEFAULT_HABITS;
     } catch {
       return DEFAULT_HABITS;
     }

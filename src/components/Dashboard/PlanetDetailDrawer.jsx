@@ -70,8 +70,7 @@ export function PlanetDetailDrawer() {
             className="planet-hero-preview"
             style={{
               backgroundColor: habit.color,
-              color: habit.color,
-              boxShadow: `0 0 25px ${habit.color}88`
+              color: habit.color
             }}
           />
           <div className="planet-hero-info">

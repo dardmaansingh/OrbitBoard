@@ -6,46 +6,46 @@ const CATEGORIES = [
   {
     name: 'Health',
     planetType: 'terran',
-    color: '#10b981',
-    atmosphereColor: '#34d399',
-    description: 'Earth-like Terran world with oceans, continents, and active clouds'
+    color: '#2563eb',
+    atmosphereColor: '#93c5fd',
+    description: 'Earth-like Terran world with deep blue oceans, realistic continents, and active clouds'
   },
   {
     name: 'Focus',
     planetType: 'azure-gas',
-    color: '#06b6d4',
-    atmosphereColor: '#38bdf8',
-    description: 'Neptune-like deep azure gas giant with swirling storm vortices'
+    color: '#0284c7',
+    atmosphereColor: '#7dd3fc',
+    description: 'Atmospheric azure gas world with subtle meteorological storm bands'
   },
   {
     name: 'Creativity',
     planetType: 'purple-ringed',
-    color: '#a855f7',
-    atmosphereColor: '#c084fc',
+    color: '#6366f1',
+    atmosphereColor: '#a5b4fc',
     hasRings: true,
-    description: 'Amethyst nebula world with concentric cosmic dust rings'
+    description: 'Celestial slate-indigo world with concentric dust rings'
   },
   {
     name: 'Mindfulness',
     planetType: 'opal-ice',
-    color: '#14b8a6',
+    color: '#0d9488',
     atmosphereColor: '#5eead4',
-    description: 'Crystalline opal ice planet with shimmering polar fractures'
+    description: 'Glacial crystalline ice planet with shimmering oceanic fractures'
   },
   {
     name: 'Fitness',
     planetType: 'crimson-ember',
-    color: '#f43f5e',
-    atmosphereColor: '#fb7185',
-    description: 'Mars-like volcanic terrain with canyons and glowing tectonic vents'
+    color: '#c2410c',
+    atmosphereColor: '#fdba74',
+    description: 'Mars-like volcanic terrain with terracotta canyons and basalt vents'
   },
   {
     name: 'Knowledge',
     planetType: 'saturn-gold',
-    color: '#f59e0b',
-    atmosphereColor: '#fde047',
+    color: '#d97706',
+    atmosphereColor: '#fde68a',
     hasRings: true,
-    description: 'Saturn-inspired golden giant with extensive planetary rings'
+    description: 'Warm sandstone ochre giant with natural planetary rings'
   }
 ];
 
