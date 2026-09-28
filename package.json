@@ -17,10 +17,14 @@
   },
   "devDependencies": {
     "@rollup/wasm-node": "^4.63.5",
+    "@tailwindcss/vite": "^4.3.3",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "@types/three": "^0.174.0",
     "@vitejs/plugin-react": "^4.3.4",
+    "autoprefixer": "^10.6.1",
+    "postcss": "^8.5.28",
+    "tailwindcss": "^4.3.3",
     "vite": "^6.2.0"
   },
   "overrides": {
