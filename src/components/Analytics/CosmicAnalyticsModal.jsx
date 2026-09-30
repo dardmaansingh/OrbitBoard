@@ -1,6 +1,6 @@
 import React from 'react';
 import { useHabits } from '../../context/HabitContext';
-import { X, BarChart3, Flame, Award, TrendingUp, Compass } from 'lucide-react';
+import { X } from 'lucide-react';
 
 export function CosmicAnalyticsModal() {
   const { activeModal, setActiveModal, habits, habitLogs } = useHabits();
@@ -9,118 +9,126 @@ export function CosmicAnalyticsModal() {
 
   const totalLogs = habitLogs.length;
   const avgCompletion = Math.round(
-    habits.reduce((acc, h) => acc + h.completionRate, 0) / (habits.length || 1)
+    habits.reduce((acc, h) => acc + (h.monthlyCompletion ?? h.completionRate ?? 0), 0) / (habits.length || 1)
   );
 
+  // Habits sorted strictly by rank (Rank 1 at top)
+  const rankedHabits = [...habits].sort((a, b) => (a.rank || 0) - (b.rank || 0));
+
   return (
-    <div className="modal-overlay" onClick={() => setActiveModal(null)}>
-      <div className="modal-dialog" style={{ maxWidth: '640px' }} onClick={(e) => e.stopPropagation()}>
+    <div className="modal-backdrop" onClick={() => setActiveModal(null)}>
+      <div className="modal-panel modal-panel-wide" onClick={(e) => e.stopPropagation()}>
+        {/* Header */}
         <div className="modal-header">
-          <div className="flex items-center gap-2">
-            <BarChart3 size={18} className="text-slate-400" />
-            <h2 className="modal-title">Habit Analytics & Planetary Rings</h2>
-          </div>
-          <button className="drawer-close-btn text-slate-400 hover:text-slate-200" onClick={() => setActiveModal(null)}>
-            <X size={16} />
+          <h2 className="modal-title">Analytics</h2>
+          <button
+            className="btn-icon"
+            onClick={() => setActiveModal(null)}
+            aria-label="Close analytics"
+          >
+            <X size={15} />
           </button>
         </div>
 
         <div className="modal-body">
-          {/* Top High-level KPIs */}
-          <div className="grid grid-cols-3 gap-2.5">
-            <div className="stat-card">
-              <span className="val text-slate-100">{totalLogs}</span>
-              <span className="lbl">Total Completed Logs</span>
-            </div>
-            <div className="stat-card">
-              <span className="val text-emerald-400">{avgCompletion}%</span>
-              <span className="lbl">System-Wide Consistency</span>
-            </div>
-            <div className="stat-card">
-              <span className="val text-amber-400">{habits.length}</span>
-              <span className="lbl">Active Solar Bodies</span>
-            </div>
+          {/* One left-aligned readout line (dropped the 3 big stat cards) */}
+          <div className="analytics-readout-line">
+            <span className="readout-segment">
+              <span className="readout-num">{totalLogs}</span> total logs
+            </span>
+            <span className="readout-sep">·</span>
+            <span className="readout-segment">
+              <span className="readout-num">{avgCompletion}%</span> consistency
+            </span>
+            <span className="readout-sep">·</span>
+            <span className="readout-segment">
+              <span className="readout-num">{habits.length}</span> active habits
+            </span>
           </div>
 
-          {/* Section: Circular Apple-Watch Style Progress Rings */}
-          <div className="mt-1">
-            <h3 className="text-xs font-semibold text-slate-200 mb-1 flex items-center gap-1.5 uppercase tracking-wider">
-              <Award size={14} className="text-amber-500" />
-              Monthly Orbit Progress Rings
-            </h3>
-            <p className="text-[11.5px] text-slate-400 mb-3">
-              Real-time completion percentage directly determining each planet's physical mass and orbit momentum.
-            </p>
-
-            <div className="rings-container">
-              {habits.map((habit) => {
-                const percent = Math.min(100, Math.max(0, habit.completionRate));
+          {/* Section: Thin Progress Rings */}
+          <div className="analytics-section">
+            <h3 className="section-title">Progress</h3>
+            <div className="rings-grid">
+              {rankedHabits.map((habit) => {
+                const percent = Math.min(100, Math.max(0, habit.monthlyCompletion ?? habit.completionRate ?? 0));
                 const strokeDasharray = `${percent}, 100`;
 
                 return (
-                  <div key={habit.id} className="progress-ring-card">
-                    <svg viewBox="0 0 36 36" className="circular-chart">
+                  <div key={habit.id} className="ring-cell">
+                    <svg viewBox="0 0 36 36" className="ring-svg">
                       <path
-                        className="circle-bg"
+                        className="ring-bg"
                         d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                        strokeWidth="1.8"
                       />
                       <path
-                        className="circle"
+                        className="ring-bar"
                         stroke={habit.color}
                         strokeDasharray={strokeDasharray}
+                        strokeWidth="1.8"
                         d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
                       />
-                      <text x="18" y="20.35" className="percentage">
+                      <text x="18" y="20.35" className="ring-percent">
                         {percent}%
                       </text>
                     </svg>
-                    <span
-                      className="text-[11.5px] font-medium text-slate-200 text-center max-w-[110px] truncate"
-                      title={habit.name}
-                    >
-                      {habit.name}
-                    </span>
-                    <span className="text-[10px] text-amber-500 font-semibold">
-                      🔥 {habit.streak}d streak
-                    </span>
+                    <div className="ring-label-group">
+                      <span className="ring-name" title={habit.name}>
+                        {habit.name}
+                      </span>
+                      <span className="ring-meta mono">
+                        Orbit {habit.rank} · {habit.streak}d
+                      </span>
+                    </div>
                   </div>
                 );
               })}
             </div>
           </div>
 
-          {/* Section: Streak Velocity Breakdown */}
-          <div className="mt-2">
-            <h3 className="text-xs font-semibold text-slate-200 mb-2 flex items-center gap-1.5 uppercase tracking-wider">
-              <TrendingUp size={14} className="text-emerald-500" />
-              Orbital Velocity & Streak Health
-            </h3>
-            <div className="flex flex-col gap-1.5">
-              {habits.map((h) => (
-                <div
-                  key={h.id}
-                  className="flex items-center justify-between p-2.5 px-3 bg-white/[0.02] hover:bg-white/[0.04] rounded-lg border border-white/5 transition-colors"
-                >
-                  <div className="flex items-center gap-2.5">
-                    <div
-                      className="planet-orb-indicator"
-                      style={{ backgroundColor: h.color, color: h.color }}
-                    />
-                    <span className="text-xs font-medium text-slate-200">{h.name}</span>
-                  </div>
-                  <div className="flex items-center gap-3 text-xs">
-                    <span className="text-slate-400">Orbit #{h.orbitDistance}AU</span>
-                    <span className="text-amber-500 font-semibold">🔥 {h.streak}d</span>
-                    <span className="text-slate-300 font-medium">{h.completionRate}% Mass</span>
-                  </div>
-                </div>
-              ))}
+          {/* Section: Streaks Ranked Table */}
+          <div className="analytics-section">
+            <h3 className="section-title">Streaks</h3>
+            <div className="ranked-table-wrapper">
+              <table className="ranked-table">
+                <thead>
+                  <tr>
+                    <th style={{ width: '48px' }}>RANK</th>
+                    <th>HABIT</th>
+                    <th style={{ width: '100px' }}>ORBIT</th>
+                    <th style={{ width: '80px', textAlign: 'right' }}>STREAK</th>
+                    <th style={{ width: '90px', textAlign: 'right' }}>COMPLETION</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {rankedHabits.map((h) => (
+                    <tr key={h.id}>
+                      <td className="mono text-muted">{h.rank}</td>
+                      <td>
+                        <div className="table-habit-name">
+                          <span
+                            className="table-color-dot"
+                            style={{ backgroundColor: h.color }}
+                          />
+                          <span>{h.name}</span>
+                        </div>
+                      </td>
+                      <td className="mono text-muted">Orbit {h.rank}</td>
+                      <td className="mono text-right font-medium">{h.streak}d</td>
+                      <td className="mono text-right text-muted">
+                        {h.monthlyCompletion ?? h.completionRate}%
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </div>
         </div>
 
         <div className="modal-footer">
-          <button className="cosmic-btn" onClick={() => setActiveModal(null)}>
+          <button className="btn-ghost" onClick={() => setActiveModal(null)}>
             Close
           </button>
         </div>

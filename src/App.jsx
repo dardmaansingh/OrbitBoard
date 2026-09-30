@@ -1,5 +1,6 @@
 import React from 'react';
 import { HabitProvider } from './context/HabitContext';
+import { FEATURES } from './config/features';
 import { ThreeCanvas } from './three/ThreeCanvas';
 import { CosmicHeader } from './components/Navigation/CosmicHeader';
 import { CameraHUD } from './components/Navigation/CameraHUD';
@@ -12,27 +13,29 @@ import { SpaceFeedModal } from './components/Feed/SpaceFeedModal';
 
 function OrbitBoardApp() {
   return (
-    <div style={{ position: 'relative', width: '100vw', height: '100vh', overflow: 'hidden' }}>
-      {/* 3D Photorealistic Three.js Solar System Canvas */}
+    <div className="orbit-app-shell">
+      {/* 3D Solar System Canvas */}
       <ThreeCanvas />
 
-      {/* Top Cosmic Header & Metrics */}
+      {/* Top Header & Telemetry Readout */}
       <CosmicHeader />
 
-      {/* Left Perspective Camera Dock */}
+      {/* Camera Mode Dock */}
       <CameraHUD />
 
-      {/* Bottom Floating Quick Habit Dock */}
+      {/* Bottom Today Habit Dock */}
       <HabitQuickHUD />
 
-      {/* Right Planet Inspection Drawer */}
+      {/* Planet Inspection Drawer */}
       <PlanetDetailDrawer />
 
-      {/* Modals */}
+      {/* Core Modals */}
       <HabitModal />
       <CosmicAnalyticsModal />
-      <CosmicCoachModal />
-      <SpaceFeedModal />
+
+      {/* Optional Features behind flag */}
+      {FEATURES.aiCoach && <CosmicCoachModal />}
+      {FEATURES.spaceFeed && <SpaceFeedModal />}
     </div>
   );
 }

@@ -1,26 +1,29 @@
 import * as THREE from 'three';
 
 /**
- * SunModel - Hyper-realistic Photorealistic Sun
- * Features:
- * - Dynamic Procedural Solar Plasma Shader with animated convection cells & sunspots
- * - Multi-layered incandescent Fresnel atmospheric corona shells
- * - Outer volumetric radial solar flare halo with camera-facing billboard
- * - Dynamic PointLight casting physical illumination across all orbiting planets
+ * SunModel - Physically Motivated Solar Shader
+ * Features per DESIGN.md:
+ * - Limb darkening and slow procedural granulation (no flat textures)
+ * - Exact color stops:
+ *   Core #FFF6DC -> #FFD27A (35%) -> #F29A2E (65%) -> #B5471B (88%) -> corona fading to rgba(181,71,27,0)
+ * - Corona glow is warm only
+ * - Physical PointLight casting warm illumination across orbiting planets
  */
 
-// Custom GLSL Shader for Solar Plasma Turbulence & Convection Cells
 const SunSurfaceShader = {
   vertexShader: `
     varying vec2 vUv;
     varying vec3 vNormal;
     varying vec3 vPosition;
+    varying vec3 vViewDir;
 
     void main() {
       vUv = uv;
       vNormal = normalize(normalMatrix * normal);
       vPosition = position;
-      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      vec4 mvPos = modelViewMatrix * vec4(position, 1.0);
+      vViewDir = normalize(-mvPos.xyz);
+      gl_Position = projectionMatrix * mvPos;
     }
   `,
   fragmentShader: `
@@ -28,6 +31,7 @@ const SunSurfaceShader = {
     varying vec2 vUv;
     varying vec3 vNormal;
     varying vec3 vPosition;
+    varying vec3 vViewDir;
 
     // Simplex Noise 3D helper functions
     vec4 permute(vec4 x) { return mod(((x*34.0)+1.0)*x, 289.0); }
@@ -79,53 +83,50 @@ const SunSurfaceShader = {
       return 42.0 * dot(m*m, vec4(dot(p0,x0), dot(p1,x1), dot(p2,x2), dot(p3,x3)));
     }
 
-    // Fractal Brownian Motion (FBM)
-    float fbm(vec3 p) {
-      float v = 0.0;
-      float a = 0.5;
-      vec3 shift = vec3(100.0);
-      for (int i = 0; i < 4; ++i) {
-        v += a * snoise(p);
-        p = p * 2.0 + shift;
-        a *= 0.5;
-      }
-      return v;
-    }
-
     void main() {
-      vec3 normal = normalize(vNormal);
-      vec3 viewDir = vec3(0.0, 0.0, 1.0);
-      
-      // Moving plasma coordinate
-      vec3 p = vPosition * 0.8;
-      float speed = uTime * 0.25;
-      
-      // Multi-layer turbulence
-      float n1 = fbm(p + vec3(speed * 0.3, speed * 0.4, 0.0));
-      float n2 = fbm(p * 2.2 - vec3(0.0, speed * 0.5, speed * 0.2));
-      float plasma = n1 * 0.6 + n2 * 0.4;
-      
-      // Color Palettes: White Core -> Golden Yellow -> Solar Orange -> Deep Thermonuclear Flare
-      vec3 colCore = vec3(1.0, 1.0, 0.95);
-      vec3 colGold = vec3(1.0, 0.78, 0.15);
-      vec3 colOrange = vec3(0.96, 0.36, 0.04);
-      vec3 colDarkSpot = vec3(0.45, 0.08, 0.01);
+      // Physical limb angle: mu = cos(theta) = normal . viewDir
+      float mu = clamp(dot(normalize(vNormal), normalize(vViewDir)), 0.0, 1.0);
+      float r = 1.0 - mu; // 0.0 at disk center, 1.0 at edge
 
-      vec3 color = mix(colOrange, colGold, smoothstep(-0.4, 0.2, plasma));
-      color = mix(color, colCore, smoothstep(0.2, 0.7, plasma));
-      color = mix(color, colDarkSpot, smoothstep(-0.8, -0.4, plasma) * 0.4);
+      // Slow procedural solar granulation (cellular convection cells)
+      float tSlow = uTime * 0.06;
+      vec3 pGranule = vPosition * 2.2;
+      float granule1 = snoise(pGranule + vec3(tSlow * 0.5, tSlow * 0.3, 0.0));
+      float granule2 = snoise(pGranule * 2.0 - vec3(0.0, tSlow * 0.4, tSlow * 0.2));
+      float granulation = (granule1 * 0.7 + granule2 * 0.3) * 0.07;
 
-      // Solar Limb Darkening & Rim Highlight
-      float fresnel = 1.0 - max(0.0, dot(normal, vec3(0.0, 0.0, 1.0)));
-      color += colGold * pow(fresnel, 2.5) * 0.8;
+      // Radial parameter with slow granulation modulation
+      float factor = clamp(r + granulation, 0.0, 1.0);
+
+      // Exact Design Tokens:
+      // core #FFF6DC -> #FFD27A (35%) -> #F29A2E (65%) -> #B5471B (88%)
+      vec3 c0 = vec3(1.0, 0.965, 0.863);  // #FFF6DC (Core)
+      vec3 c35 = vec3(1.0, 0.824, 0.478); // #FFD27A (35%)
+      vec3 c65 = vec3(0.949, 0.604, 0.180); // #F29A2E (65%)
+      vec3 c88 = vec3(0.710, 0.278, 0.106); // #B5471B (88%)
+      vec3 cLimb = vec3(0.48, 0.16, 0.06);
+
+      vec3 color;
+      if (factor <= 0.35) {
+        color = mix(c0, c35, factor / 0.35);
+      } else if (factor <= 0.65) {
+        color = mix(c35, c65, (factor - 0.35) / 0.30);
+      } else if (factor <= 0.88) {
+        color = mix(c65, c88, (factor - 0.65) / 0.23);
+      } else {
+        color = mix(c88, cLimb, (factor - 0.88) / 0.12);
+      }
+
+      // Astronomical limb darkening factor
+      color *= (0.4 + 0.6 * pow(mu, 0.3));
 
       gl_FragColor = vec4(color, 1.0);
     }
   `
 };
 
-// Corona Atmospheric Glow Shader
-const CoronaGlowShader = {
+// Corona Warm Shell Shader (Corona fading to rgba(181, 71, 27, 0))
+const CoronaWarmShader = {
   vertexShader: `
     varying vec3 vNormal;
     void main() {
@@ -139,8 +140,8 @@ const CoronaGlowShader = {
     varying vec3 vNormal;
 
     void main() {
-      float intensity = pow(0.65 - dot(vNormal, vec3(0.0, 0.0, 1.0)), 2.8) * uIntensity;
-      gl_FragColor = vec4(uColor, intensity);
+      float edge = pow(0.68 - dot(vNormal, vec3(0.0, 0.0, 1.0)), 2.6) * uIntensity;
+      gl_FragColor = vec4(uColor, clamp(edge, 0.0, 1.0));
     }
   `
 };
@@ -152,9 +153,9 @@ export class SunModel {
     this.radius = 4.2;
 
     this.createCore();
-    this.createCoronas();
+    this.createWarmCoronas();
     this.createLight();
-    this.createSolarHalo();
+    this.createWarmHalo();
 
     this.scene.add(this.group);
   }
@@ -176,15 +177,15 @@ export class SunModel {
     this.group.add(this.coreMesh);
   }
 
-  createCoronas() {
-    // Inner Corona Shell (Intense atmospheric rim glow)
-    const innerGeo = new THREE.SphereGeometry(this.radius * 1.08, 48, 48);
+  createWarmCoronas() {
+    // Inner Warm Corona Shell (#F29A2E)
+    const innerGeo = new THREE.SphereGeometry(this.radius * 1.07, 48, 48);
     const innerMat = new THREE.ShaderMaterial({
-      vertexShader: CoronaGlowShader.vertexShader,
-      fragmentShader: CoronaGlowShader.fragmentShader,
+      vertexShader: CoronaWarmShader.vertexShader,
+      fragmentShader: CoronaWarmShader.fragmentShader,
       uniforms: {
-        uColor: { value: new THREE.Color(0xffb703) },
-        uIntensity: { value: 2.2 }
+        uColor: { value: new THREE.Color('#F29A2E') },
+        uIntensity: { value: 1.6 }
       },
       blending: THREE.AdditiveBlending,
       side: THREE.BackSide,
@@ -194,14 +195,14 @@ export class SunModel {
     this.innerCorona = new THREE.Mesh(innerGeo, innerMat);
     this.group.add(this.innerCorona);
 
-    // Outer Corona Shell (Soft diffuse flare glow)
-    const outerGeo = new THREE.SphereGeometry(this.radius * 1.25, 48, 48);
+    // Outer Warm Corona Shell (#B5471B fading to transparent 0)
+    const outerGeo = new THREE.SphereGeometry(this.radius * 1.22, 48, 48);
     const outerMat = new THREE.ShaderMaterial({
-      vertexShader: CoronaGlowShader.vertexShader,
-      fragmentShader: CoronaGlowShader.fragmentShader,
+      vertexShader: CoronaWarmShader.vertexShader,
+      fragmentShader: CoronaWarmShader.fragmentShader,
       uniforms: {
-        uColor: { value: new THREE.Color(0xfb8500) },
-        uIntensity: { value: 1.5 }
+        uColor: { value: new THREE.Color('#B5471B') },
+        uIntensity: { value: 1.0 }
       },
       blending: THREE.AdditiveBlending,
       side: THREE.BackSide,
@@ -212,70 +213,76 @@ export class SunModel {
     this.group.add(this.outerCorona);
   }
 
-  createSolarHalo() {
-    // Large Billboard Flare Sprite (Google Earth style radiant sun rays)
+  createWarmHalo() {
+    // Soft radial warm flare sprite
     const canvas = document.createElement('canvas');
-    canvas.width = 512;
-    canvas.height = 512;
+    canvas.width = 256;
+    canvas.height = 256;
     const ctx = canvas.getContext('2d');
 
-    const grad = ctx.createRadialGradient(256, 256, 0, 256, 256, 256);
-    grad.addColorStop(0.0, 'rgba(255, 255, 240, 1.0)');
-    grad.addColorStop(0.15, 'rgba(255, 200, 50, 0.8)');
-    grad.addColorStop(0.4, 'rgba(255, 120, 10, 0.35)');
-    grad.addColorStop(0.7, 'rgba(255, 60, 0, 0.1)');
-    grad.addColorStop(1.0, 'rgba(0, 0, 0, 0.0)');
+    const grad = ctx.createRadialGradient(128, 128, 15, 128, 128, 128);
+    grad.addColorStop(0, 'rgba(255, 242, 220, 0.7)');
+    grad.addColorStop(0.25, 'rgba(242, 163, 58, 0.45)');
+    grad.addColorStop(0.65, 'rgba(181, 71, 27, 0.18)');
+    grad.addColorStop(1.0, 'rgba(181, 71, 27, 0.0)');
 
     ctx.fillStyle = grad;
-    ctx.fillRect(0, 0, 512, 512);
+    ctx.fillRect(0, 0, 256, 256);
 
     const texture = new THREE.CanvasTexture(canvas);
     const spriteMat = new THREE.SpriteMaterial({
       map: texture,
-      color: 0xffffff,
       blending: THREE.AdditiveBlending,
       transparent: true,
-      depthWrite: false
+      depthWrite: false,
+      opacity: 0.8
     });
 
     this.haloSprite = new THREE.Sprite(spriteMat);
-    this.haloSprite.scale.set(this.radius * 6.5, this.radius * 6.5, 1);
+    this.haloSprite.scale.set(this.radius * 3.8, this.radius * 3.8, 1);
     this.group.add(this.haloSprite);
   }
 
   createLight() {
-    // Physical PointLight illuminating all planets
-    this.pointLight = new THREE.PointLight(0xfff7e6, 3.5, 300, 0.5);
-    this.pointLight.position.set(0, 0, 0);
+    // Warm solar illumination casting natural light on planets
+    this.pointLight = new THREE.PointLight(0xfff6dc, 3.2, 350, 0.5);
+    this.pointLight.castShadow = true;
+    this.pointLight.shadow.mapSize.width = 1024;
+    this.pointLight.shadow.mapSize.height = 1024;
+    this.pointLight.shadow.camera.near = 1.0;
+    this.pointLight.shadow.camera.far = 250;
     this.group.add(this.pointLight);
 
-    // Warm ambient base so dark sides have subtle cosmological visibility
-    const ambientLight = new THREE.AmbientLight(0x1a243b, 0.45);
+    // Warm faint ambient baseline
+    const ambientLight = new THREE.AmbientLight(0x15110c, 0.35);
     this.scene.add(ambientLight);
+    this.ambientLight = ambientLight;
   }
 
   update(delta) {
     if (this.uniforms) {
       this.uniforms.uTime.value += delta;
     }
-    // Slow majestic solar axial rotation
-    if (this.coreMesh) {
-      this.coreMesh.rotation.y += delta * 0.05;
-    }
-    // Subtle pulsating breathing effect on outer halo
     if (this.haloSprite) {
-      const pulse = 1.0 + Math.sin(Date.now() * 0.0018) * 0.04;
-      this.haloSprite.scale.set(this.radius * 6.5 * pulse, this.radius * 6.5 * pulse, 1);
+      // Subtle organic breath
+      const s = this.radius * (3.8 + Math.sin(this.uniforms.uTime.value * 0.6) * 0.06);
+      this.haloSprite.scale.set(s, s, 1);
     }
   }
 
   dispose() {
     this.coreMesh.geometry.dispose();
-    this.coreMesh.material.dispose();
+    this.sunMaterial.dispose();
     this.innerCorona.geometry.dispose();
     this.innerCorona.material.dispose();
     this.outerCorona.geometry.dispose();
     this.outerCorona.material.dispose();
+    if (this.haloSprite) {
+      this.haloSprite.material.dispose();
+    }
+    if (this.ambientLight) {
+      this.scene.remove(this.ambientLight);
+    }
     this.scene.remove(this.group);
   }
 }

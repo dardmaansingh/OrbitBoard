@@ -23,7 +23,14 @@ export function ThreeCanvas() {
         focusOnHabitPlanet(habit);
       },
       onPlanetHover: (info) => {
-        setTooltip(info);
+        if (info) {
+          setTooltip({
+            visible: true,
+            habit: info
+          });
+        } else {
+          setTooltip(prev => ({ ...prev, visible: false }));
+        }
       }
     });
 
@@ -35,7 +42,7 @@ export function ThreeCanvas() {
     };
   }, []);
 
-  // Sync habits to scene
+  // Sync ranked habits to 3D scene
   useEffect(() => {
     if (sceneInstanceRef.current) {
       sceneInstanceRef.current.syncHabits(
@@ -46,7 +53,7 @@ export function ThreeCanvas() {
     }
   }, [habits, selectedPlanetHabit]);
 
-  // Handle camera mode commands
+  // Handle camera mode changes
   useEffect(() => {
     if (!sceneInstanceRef.current) return;
     if (cameraMode === 'solar' || cameraMode === 'free') {
@@ -63,31 +70,17 @@ export function ThreeCanvas() {
   return (
     <div className="three-canvas-container" ref={containerRef}>
       {tooltip.visible && tooltip.habit && (
-        <div
-          className="space-tooltip"
-          style={{
-            left: `${tooltip.screenX}px`,
-            top: `${tooltip.screenY}px`
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+        <div className="planet-hover-tooltip">
+          <div className="tooltip-header">
             <span
-              style={{
-                width: '8px',
-                height: '8px',
-                borderRadius: '50%',
-                backgroundColor: tooltip.habit.color,
-                boxShadow: `0 0 6px ${tooltip.habit.color}`
-              }}
+              className="tooltip-dot"
+              style={{ backgroundColor: tooltip.habit.color }}
             />
-            <span>{tooltip.habit.name}</span>
+            <span className="tooltip-title">{tooltip.habit.name}</span>
           </div>
-          <div className="space-tooltip-streak">
-            🔥 {tooltip.habit.streak} day streak • {tooltip.habit.completionRate}% rate
+          <div className="tooltip-meta mono">
+            Orbit {tooltip.habit.rank} · {tooltip.habit.streak}d streak
           </div>
-          <span style={{ fontSize: '10px', color: '#94a3b8' }}>
-            Click to zoom in
-          </span>
         </div>
       )}
     </div>

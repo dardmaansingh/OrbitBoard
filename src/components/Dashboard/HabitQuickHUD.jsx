@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useHabits } from '../../context/HabitContext';
-import { Check, Flame, ChevronDown, ChevronUp, Sparkles, Orbit } from 'lucide-react';
+import { Check, ChevronDown, ChevronUp } from 'lucide-react';
 
 export function HabitQuickHUD() {
   const {
@@ -14,42 +14,38 @@ export function HabitQuickHUD() {
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   return (
-    <div
-      className="habit-hud-dock"
-      style={{
-        transform: isCollapsed ? 'translate(-50%, calc(100% - 44px))' : 'translate(-50%, 0)',
-        transition: 'transform 0.35s cubic-bezier(0.16, 1, 0.3, 1)'
-      }}
-    >
-      <div className="hud-header flex items-center justify-between pb-2 border-b border-white/5">
-        <div className="hud-title-group flex items-center gap-2.5">
-          <Orbit size={15} className="text-slate-400" />
-          <span className="hud-title text-xs font-semibold tracking-wide text-slate-200 uppercase">Orbital Log • Quick Dock</span>
-          <span className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-white/5 border border-white/10 text-slate-400">
-            {habits.length} Active Planets
+    <aside className="today-dock">
+      {/* Dock Bar Header */}
+      <div className="dock-header">
+        <div className="dock-title-group">
+          <span className="dock-title">Today</span>
+          <span className="dock-count">
+            {habits.filter(h => isHabitCompletedToday(h.id)).length}/{habits.length}
           </span>
         </div>
 
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}
-          className="bg-transparent border-0 text-slate-400 hover:text-slate-200 cursor-pointer flex items-center gap-1 text-xs transition-colors duration-150"
+          className="dock-toggle-btn"
+          aria-label={isCollapsed ? 'Expand dock' : 'Collapse dock'}
         >
           {isCollapsed ? (
             <>
               <span>Expand</span>
-              <ChevronUp size={14} />
+              <ChevronUp size={13} />
             </>
           ) : (
             <>
               <span>Collapse</span>
-              <ChevronDown size={14} />
+              <ChevronDown size={13} />
             </>
           )}
         </button>
       </div>
 
+      {/* Flat tray of rows: no cards inside cards */}
       {!isCollapsed && (
-        <div className="hud-cards-row pt-2">
+        <div className="dock-rows-tray">
           {habits.map((habit) => {
             const completed = isHabitCompletedToday(habit.id);
             const isSelected = selectedPlanetHabit?.id === habit.id;
@@ -57,53 +53,41 @@ export function HabitQuickHUD() {
             return (
               <div
                 key={habit.id}
-                className={`habit-quick-card group ${completed ? 'completed' : ''} ${isSelected ? 'ring-1 ring-blue-500/50' : ''}`}
-                style={{
-                  borderLeft: `3px solid ${habit.color}`,
-                  background: isSelected ? 'rgba(37, 99, 235, 0.12)' : undefined
-                }}
+                className={`dock-row ${completed ? 'is-completed' : ''} ${isSelected ? 'is-selected' : ''}`}
+                style={{ borderLeftColor: habit.color }}
                 onClick={() => focusOnHabitPlanet(habit)}
               >
-                <div className="habit-card-left flex items-center gap-2.5 min-w-0">
-                  <div
-                    className="planet-orb-indicator"
-                    style={{
-                      backgroundColor: habit.color,
-                      color: habit.color
-                    }}
-                    title={`${habit.name} (${habit.category})`}
-                  />
-                  <div className="habit-card-info flex flex-col min-w-0">
-                    <span className="habit-card-name text-[13px] font-medium text-slate-200 truncate" title={habit.name}>
-                      {habit.name}
-                    </span>
-                    <div className="habit-card-meta flex items-center gap-1.5 text-[11px] text-slate-400">
-                      <span className="streak-flame flex items-center gap-0.5 text-amber-500 font-semibold">
-                        <Flame size={11} className="text-amber-500" />
-                        {habit.streak}d
-                      </span>
-                      <span className="text-slate-600">•</span>
-                      <span className="text-slate-400">{habit.category}</span>
-                    </div>
-                  </div>
+                {/* Left: Rank & Habit Title */}
+                <div className="dock-row-left">
+                  <span className="dock-row-rank">O{habit.rank}</span>
+                  <span className="dock-row-name" title={habit.name}>
+                    {habit.name}
+                  </span>
                 </div>
 
-                {/* Direct check completion button */}
-                <button
-                  className={`check-circle-btn ${completed ? 'checked' : ''}`}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    toggleHabitToday(habit.id);
-                  }}
-                  title={completed ? 'Completed today! Click to undo' : 'Mark completed today'}
-                >
-                  <Check size={13} strokeWidth={2.5} />
-                </button>
+                {/* Right: Streak & Checkbox */}
+                <div className="dock-row-right">
+                  <span className="dock-row-streak" title={`Current streak: ${habit.streak} days`}>
+                    {habit.streak}d
+                  </span>
+
+                  <button
+                    className={`dock-checkbox ${completed ? 'checked' : ''}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleHabitToday(habit.id);
+                    }}
+                    title={completed ? 'Completed today (click to undo)' : 'Mark completed today'}
+                    aria-label={`Mark ${habit.name} complete`}
+                  >
+                    {completed && <Check size={12} strokeWidth={3} />}
+                  </button>
+                </div>
               </div>
             );
           })}
         </div>
       )}
-    </div>
+    </aside>
   );
 }

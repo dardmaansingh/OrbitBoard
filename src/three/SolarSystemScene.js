@@ -30,7 +30,8 @@ export class SolarSystemScene {
 
   initScene() {
     this.scene = new THREE.Scene();
-    this.scene.background = new THREE.Color(0x020617);
+    // Transparent scene background allows the warm light-motivated CSS vignette to show through
+    this.scene.background = null;
 
     const width = this.container.clientWidth;
     const height = this.container.clientHeight;
@@ -41,12 +42,12 @@ export class SolarSystemScene {
     this.renderer = new THREE.WebGLRenderer({
       antialias: true,
       powerPreference: 'high-performance',
-      alpha: false
+      alpha: true
     });
     this.renderer.setSize(width, height);
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    this.renderer.toneMappingExposure = 1.15;
+    this.renderer.toneMappingExposure = 1.05;
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
@@ -63,10 +64,9 @@ export class SolarSystemScene {
     this.controls.maxPolarAngle = Math.PI * 0.88;
     this.controls.target.set(0, 0, 0);
 
-    // Disable target tracking if user manually drags camera
     this.controls.addEventListener('start', () => {
       if (this.isTrackingPlanet) {
-        // User taking over control, keep focus but unlock strict tracking
+        // User taking over control
       }
     });
   }
@@ -78,10 +78,10 @@ export class SolarSystemScene {
   }
 
   initObjects() {
-    // 1. Deep Space Starfield & Nebulae
+    // 1. Sparse Starfield
     this.deepSpace = new DeepSpace(this.scene);
 
-    // 2. Photorealistic Central Sun
+    // 2. Solar Shader Sun
     this.sun = new SunModel(this.scene);
 
     // 3. Orbit Paths Manager
@@ -109,12 +109,12 @@ export class SolarSystemScene {
         planet = new PlanetModel(this.scene, habit);
         this.planets.set(habit.id, planet);
       } else {
-        planet.habit = habit;
+        planet.updateHabitData(habit);
       }
     });
 
     // Update orbit lines
-    this.orbitsManager.updateOrbits(habits, selectedHabitId);
+    this.orbitsManager.updateOrbits(habits, selectedHabitId, this.planets);
   }
 
   focusPlanet(habitId) {
@@ -157,20 +157,21 @@ export class SolarSystemScene {
       const rect = this.renderer.domElement.getBoundingClientRect();
       this.mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
       this.mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
-      this.checkHover(e.clientX, e.clientY);
+      this.checkIntersection();
     };
     this.renderer.domElement.addEventListener('mousemove', this.onMouseMove);
 
     this.onClick = (e) => {
-      this.checkClick(e);
+      const rect = this.renderer.domElement.getBoundingClientRect();
+      const clickX = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+      const clickY = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+      this.handleSceneClick(clickX, clickY);
     };
     this.renderer.domElement.addEventListener('click', this.onClick);
   }
 
-  checkHover(screenX, screenY) {
+  checkIntersection() {
     this.raycaster.setFromCamera(this.mouse, this.camera);
-    
-    // Check against all planet meshes
     const meshes = [];
     for (const [, planet] of this.planets) {
       if (planet.mesh) meshes.push(planet.mesh);
@@ -178,32 +179,33 @@ export class SolarSystemScene {
 
     const intersects = this.raycaster.intersectObjects(meshes);
     if (intersects.length > 0) {
-      const hit = intersects[0].object;
-      const habit = hit.userData.habit;
-      if (habit) {
-        this.hoveredPlanetId = habit.id;
-        this.container.style.cursor = 'pointer';
-        this.onPlanetHover({
-          habit,
-          screenX,
-          screenY,
-          visible: true
-        });
-        return;
+      const hitMesh = intersects[0].object;
+      const habitId = hitMesh.userData.habitId;
+      if (this.hoveredPlanetId !== habitId) {
+        if (this.hoveredPlanetId && this.planets.has(this.hoveredPlanetId)) {
+          this.planets.get(this.hoveredPlanetId).setHighlight(false);
+        }
+        this.hoveredPlanetId = habitId;
+        if (this.planets.has(habitId)) {
+          this.planets.get(habitId).setHighlight(true);
+          const habit = hitMesh.userData.habit;
+          this.onPlanetHover(habit);
+        }
       }
-    }
-
-    if (this.hoveredPlanetId) {
-      this.hoveredPlanetId = null;
-      this.container.style.cursor = 'default';
-      this.onPlanetHover({ visible: false });
+      this.renderer.domElement.style.cursor = 'pointer';
+    } else {
+      if (this.hoveredPlanetId) {
+        if (this.planets.has(this.hoveredPlanetId)) {
+          this.planets.get(this.hoveredPlanetId).setHighlight(false);
+        }
+        this.hoveredPlanetId = null;
+        this.onPlanetHover(null);
+      }
+      this.renderer.domElement.style.cursor = 'default';
     }
   }
 
-  checkClick(e) {
-    const rect = this.renderer.domElement.getBoundingClientRect();
-    const mouseX = ((e.clientX - rect.left) / rect.width) * 2 - 1;
-    const mouseY = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+  handleSceneClick(mouseX, mouseY) {
     const clickRay = new THREE.Raycaster();
     clickRay.setFromCamera(new THREE.Vector2(mouseX, mouseY), this.camera);
 
@@ -214,8 +216,7 @@ export class SolarSystemScene {
 
     const intersects = clickRay.intersectObjects(meshes);
     if (intersects.length > 0) {
-      const hit = intersects[0].object;
-      const habit = hit.userData.habit;
+      const habit = intersects[0].object.userData.habit;
       if (habit) {
         this.focusPlanet(habit.id);
         this.onPlanetClick(habit);
@@ -238,14 +239,18 @@ export class SolarSystemScene {
       planet.update(delta, isDone);
     }
 
-    // 3. Camera Fly-To & Tracking Logic
+    // 3. Keep Orbit Lines Synchronized with animated radii
+    if (this.orbitsManager) {
+      this.orbitsManager.syncRadii(this.planets);
+    }
+
+    // 4. Camera Fly-To & Tracking Logic
     if (this.activeFocusHabitId) {
       const targetPlanet = this.planets.get(this.activeFocusHabitId);
       if (targetPlanet) {
         const planetPos = new THREE.Vector3();
         targetPlanet.getWorldPosition(planetPos);
 
-        // Position camera smoothly at an offset close to the planet
         const offset = new THREE.Vector3(
           targetPlanet.radius * 2.8,
           targetPlanet.radius * 1.5,
@@ -261,7 +266,6 @@ export class SolarSystemScene {
             this.isLerpingCamera = false;
           }
         } else if (this.isTrackingPlanet) {
-          // Keep target updated as planet orbits
           const shift = planetPos.clone().sub(this.controls.target);
           this.camera.position.add(shift);
           this.controls.target.copy(planetPos);

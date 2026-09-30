@@ -1,16 +1,6 @@
 import React from 'react';
 import { useHabits, getMoonPhaseDetails } from '../../context/HabitContext';
-import {
-  X,
-  Flame,
-  Check,
-  Calendar,
-  Sparkles,
-  Trash2,
-  TrendingUp,
-  Moon,
-  Compass
-} from 'lucide-react';
+import { X, Check, Calendar, Trash2 } from 'lucide-react';
 
 export function PlanetDetailDrawer() {
   const {
@@ -36,169 +26,123 @@ export function PlanetDetailDrawer() {
   };
 
   const handleDelete = () => {
-    if (window.confirm(`Are you sure you want to decommission planet orbit for "${habit.name}"?`)) {
+    if (window.confirm(`Decommission planet orbit for "${habit.name}"?`)) {
       deleteHabit(habit.id);
     }
   };
 
   return (
     <aside className="planet-drawer">
-      {/* Drawer Header */}
+      {/* Header */}
       <div className="drawer-header">
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <div className="drawer-meta-tags">
           <span
-            className="cosmic-badge"
-            style={{
-              backgroundColor: `${habit.color}25`,
-              color: habit.color,
-              borderColor: `${habit.color}50`
-            }}
-          >
-            {habit.category} Planet
-          </span>
-          <span style={{ fontSize: '11px', color: '#94a3b8' }}>Orbit #{habit.orbitDistance}AU</span>
+            className="drawer-category-bar"
+            style={{ backgroundColor: habit.color }}
+          />
+          <span className="drawer-category-name">{habit.category}</span>
+          <span className="drawer-sep">/</span>
+          <span className="drawer-rank mono">Orbit {habit.rank}</span>
         </div>
-        <button className="drawer-close-btn" onClick={handleClose} title="Close planet inspection">
-          <X size={18} />
+
+        <button
+          className="btn-icon"
+          onClick={handleClose}
+          aria-label="Close drawer"
+        >
+          <X size={15} />
         </button>
       </div>
 
       <div className="drawer-content">
-        {/* Planet Hero Preview */}
-        <div className="planet-hero">
-          <div
-            className="planet-hero-preview"
-            style={{
-              backgroundColor: habit.color,
-              color: habit.color
-            }}
-          />
-          <div className="planet-hero-info">
-            <h2 className="planet-hero-title">{habit.name}</h2>
-            <p style={{ fontSize: '12px', color: '#94a3b8', lineHeight: '1.4' }}>
-              {habit.description || 'Persistent celestial routine.'}
-            </p>
-          </div>
+        {/* Habit Identity */}
+        <div className="drawer-title-block">
+          <h2 className="drawer-habit-title">{habit.name}</h2>
+          <p className="drawer-habit-desc">
+            {habit.description || 'Continuous daily discipline.'}
+          </p>
         </div>
 
-        {/* Astronomy Lunar Banner (Blueprint feature) */}
-        <div className="lunar-phase-banner">
-          <div className="lunar-icon">{moon.icon}</div>
-          <div className="lunar-text-group">
-            <span className="lunar-title">
-              Lunar Alignment: {moon.phaseName}
-            </span>
-            <span className="lunar-sub">
-              {moon.illumination}% illuminated • Day {moon.dayOfCycle} of synodic orbit
-            </span>
-          </div>
-        </div>
-
-        {/* Quick Mark Complete Button */}
+        {/* Primary Action Button */}
         <button
-          className={`cosmic-btn ${isDoneToday ? 'cosmic-btn' : 'cosmic-btn-primary'}`}
-          style={{
-            width: '100%',
-            justifyContent: 'center',
-            padding: '12px 20px',
-            fontSize: '14px',
-            background: isDoneToday ? 'rgba(16, 185, 129, 0.2)' : undefined,
-            borderColor: isDoneToday ? '#10b981' : undefined
-          }}
+          className={isDoneToday ? 'btn-done-today' : 'btn-primary'}
+          style={{ width: '100%', justifyContent: 'center' }}
           onClick={() => toggleHabitToday(habit.id)}
         >
-          <Check size={18} />
-          <span>{isDoneToday ? 'Completed Today! (Click to Undo)' : 'Mark Orbit Complete Today'}</span>
+          <Check size={14} strokeWidth={2.5} />
+          <span>{isDoneToday ? 'Completed Today (Undo)' : 'Complete Today'}</span>
         </button>
 
-        {/* Stats Grid */}
-        <div className="drawer-stats-grid">
-          <div className="stat-card">
-            <span className="val" style={{ color: '#f97316' }}>
-              🔥 {habit.streak}d
-            </span>
-            <span className="lbl">Current Streak</span>
+        {/* Monospaced Key Metrics */}
+        <div className="drawer-metrics-strip">
+          <div className="metric-box">
+            <span className="metric-box-val mono">{habit.streak}d</span>
+            <span className="metric-box-label">CURRENT</span>
           </div>
-          <div className="stat-card">
-            <span className="val" style={{ color: '#38bdf8' }}>
-              {habit.bestStreak || habit.streak}d
-            </span>
-            <span className="lbl">Best Streak</span>
+          <div className="metric-box">
+            <span className="metric-box-val mono">{habit.bestStreak || habit.streak}d</span>
+            <span className="metric-box-label">BEST</span>
           </div>
-          <div className="stat-card">
-            <span className="val" style={{ color: '#34d399' }}>
-              {habit.completionRate}%
+          <div className="metric-box">
+            <span className="metric-box-val mono">
+              {habit.monthlyCompletion ?? habit.completionRate}%
             </span>
-            <span className="lbl">Consistency</span>
+            <span className="metric-box-label">MONTHLY</span>
           </div>
         </div>
 
-        {/* 365-Day Contribution Heatmap Grid (GitHub style as specified in blueprint 2.3 & 2.4) */}
-        <div className="heatmap-section">
+        {/* Lunar Status */}
+        <div className="drawer-lunar-row">
+          <span className="drawer-lunar-label">LUNAR CYCLE</span>
+          <span className="drawer-lunar-val mono">
+            {moon.phaseName} ({moon.illumination}%)
+          </span>
+        </div>
+
+        {/* 365-Day Monochromatic Heatmap (Heat scale: #3A2A14 -> #7A4E16 -> #C27A1E -> #F2A33A -> #FFD27A) */}
+        <div className="drawer-heatmap-section">
           <div className="heatmap-header">
-            <span style={{ fontWeight: '600', color: '#f8fafc', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <Calendar size={14} color="#38bdf8" />
-              Annual Orbit Heatmap (365 Days)
+            <span className="heatmap-title">
+              <Calendar size={13} />
+              <span>365-Day Log</span>
             </span>
-            <span style={{ fontSize: '11px', color: '#94a3b8' }}>
-              GitHub style
+            <span className="heatmap-legend">
+              <span>Less</span>
+              <span className="legend-cell level-0" />
+              <span className="legend-cell level-1" />
+              <span className="legend-cell level-2" />
+              <span className="legend-cell level-3" />
+              <span className="legend-cell level-4" />
+              <span>More</span>
             </span>
           </div>
 
-          <div className="heatmap-container">
+          <div className="heatmap-grid-scroll">
             <div className="heatmap-grid">
               {heatmapDays.map((day, idx) => (
                 <div
                   key={idx}
-                  className={`heatmap-cell ${day.level > 0 ? `level-${day.level}` : ''}`}
-                  title={`${day.date}: ${day.count > 0 ? 'Completed' : 'No record'}`}
+                  className={`heatmap-cell level-${day.level}`}
+                  title={`${day.date}: ${day.count > 0 ? `${day.count} entries` : 'No logs'}`}
                 />
               ))}
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '4px', marginTop: '8px', fontSize: '10px', color: '#64748b' }}>
-              <span>Less</span>
-              <div className="heatmap-cell" style={{ cursor: 'default' }} />
-              <div className="heatmap-cell level-1" style={{ cursor: 'default' }} />
-              <div className="heatmap-cell level-2" style={{ cursor: 'default' }} />
-              <div className="heatmap-cell level-3" style={{ cursor: 'default' }} />
-              <div className="heatmap-cell level-4" style={{ cursor: 'default' }} />
-              <span>More</span>
             </div>
           </div>
         </div>
 
         {/* Orbit Mechanics Note */}
-        <div
-          style={{
-            padding: '12px 14px',
-            background: 'rgba(15, 23, 42, 0.6)',
-            borderRadius: '10px',
-            border: '1px solid rgba(255, 255, 255, 0.05)',
-            fontSize: '11px',
-            color: '#94a3b8',
-            lineHeight: '1.5'
-          }}
-        >
-          <strong style={{ color: '#e2e8f0' }}>Cosmic Physics:</strong> Planet size scales with your {habit.completionRate}% completion rate. Orbital velocity dynamically accelerates as your {habit.streak}-day streak increases!
+        <div className="drawer-telemetry-note mono">
+          RANK {habit.rank} · RADIUS {habit.orbitDistance?.toFixed(1) || '12.0'}AU · SPEED ∝ r^-1.5
         </div>
 
-        {/* Footer Actions */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto', paddingTop: '12px' }}>
+        {/* Danger Action */}
+        <div className="drawer-footer-actions">
           <button
             onClick={handleDelete}
-            style={{
-              background: 'none',
-              border: 'none',
-              color: '#ef4444',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              fontSize: '12px'
-            }}
+            className="btn-danger-link"
           >
-            <Trash2 size={14} />
-            <span>Archive Planet</span>
+            <Trash2 size={13} />
+            <span>Decommission Orbit</span>
           </button>
         </div>
       </div>

@@ -1,77 +1,99 @@
 import * as THREE from 'three';
 
 /**
- * Orbits - Luminous Planetary Orbit Paths
- * Features:
- * - Geometric elliptical/circular orbit rings
- * - Interactive hover & selection neon glow
- * - Subtle celestial dash/dot patterns
+ * OrbitPathsManager - Geometric Planetary Orbit Traces
+ * Implements Phase 3 Design Guidelines:
+ * - Orbit lines: White at 6-8% opacity (0.07)
+ * - Rank 1's orbit: Gets its planet color at ~35% opacity (0.35)
+ * - Dynamically scaled to match each planet's current animated radius
  */
 
 export class OrbitPathsManager {
   constructor(scene) {
     this.scene = scene;
-    this.orbitMeshes = new Map(); // habitId -> mesh
+    this.orbitMeshes = new Map(); // habitId -> lineMesh
+    this.unitGeometry = this.createUnitCircleGeometry();
   }
 
-  updateOrbits(habits, selectedId) {
-    // Clean up old orbits that no longer exist
+  createUnitCircleGeometry() {
+    const segments = 180;
+    const points = [];
+    for (let i = 0; i <= segments; i++) {
+      const theta = (i / segments) * Math.PI * 2;
+      points.push(new THREE.Vector3(Math.cos(theta), 0, Math.sin(theta)));
+    }
+    return new THREE.BufferGeometry().setFromPoints(points);
+  }
+
+  updateOrbits(habits, selectedId, planetsMap) {
     const currentIds = new Set(habits.map(h => h.id));
+
+    // Remove deleted orbits
     for (const [id, mesh] of this.orbitMeshes.entries()) {
       if (!currentIds.has(id)) {
         this.scene.remove(mesh);
-        mesh.geometry.dispose();
         mesh.material.dispose();
         this.orbitMeshes.delete(id);
       }
     }
 
-    // Create or update orbits
+    // Update or create orbit rings
     habits.forEach(habit => {
-      const isSelected = habit.id === selectedId;
-      const radius = habit.orbitDistance || 15;
-
       let orbit = this.orbitMeshes.get(habit.id);
-      if (!orbit) {
-        // Create circle line geometry
-        const segments = 128;
-        const points = [];
-        for (let i = 0; i <= segments; i++) {
-          const theta = (i / segments) * Math.PI * 2;
-          points.push(new THREE.Vector3(Math.cos(theta) * radius, 0, Math.sin(theta) * radius));
-        }
+      const isRank1 = habit.rank === 1;
+      const isSelected = habit.id === selectedId;
 
-        const geometry = new THREE.BufferGeometry().setFromPoints(points);
+      if (!orbit) {
         const material = new THREE.LineBasicMaterial({
-          color: new THREE.Color(habit.color || 0x38bdf8),
+          color: new THREE.Color(0xffffff),
           transparent: true,
-          opacity: 0.22,
-          linewidth: 1
+          opacity: 0.07,
+          depthWrite: false
         });
 
-        orbit = new THREE.Line(geometry, material);
+        orbit = new THREE.Line(this.unitGeometry, material);
         orbit.rotation.x = 0;
         this.scene.add(orbit);
         this.orbitMeshes.set(habit.id, orbit);
       }
 
-      // Update appearance based on active selection
-      if (isSelected) {
-        orbit.material.opacity = 0.85;
-        orbit.material.color.setHex(0x38bdf8);
+      // Determine color & opacity per DESIGN.md
+      if (isRank1) {
+        orbit.material.color.setStyle(habit.color || '#F2A33A');
+        orbit.material.opacity = 0.35;
+      } else if (isSelected) {
+        orbit.material.color.setStyle(habit.color || '#E8E4DC');
+        orbit.material.opacity = 0.28;
       } else {
-        orbit.material.opacity = 0.22;
-        orbit.material.color.setStyle(habit.color || '#38bdf8');
+        orbit.material.color.setHex(0xffffff);
+        orbit.material.opacity = 0.07; // 7% opacity for standard orbits
       }
+
+      // Sync scale to the actual animated planet radius if available
+      const planet = planetsMap ? planetsMap.get(habit.id) : null;
+      const radius = planet ? planet.currentRadius : (habit.orbitDistance || 16);
+      orbit.scale.set(radius, 1, radius);
     });
+  }
+
+  syncRadii(planetsMap) {
+    if (!planetsMap) return;
+    for (const [id, mesh] of this.orbitMeshes.entries()) {
+      const planet = planetsMap.get(id);
+      if (planet) {
+        mesh.scale.set(planet.currentRadius, 1, planet.currentRadius);
+      }
+    }
   }
 
   dispose() {
     for (const [, mesh] of this.orbitMeshes.entries()) {
       this.scene.remove(mesh);
-      mesh.geometry.dispose();
       mesh.material.dispose();
     }
     this.orbitMeshes.clear();
+    if (this.unitGeometry) {
+      this.unitGeometry.dispose();
+    }
   }
 }
