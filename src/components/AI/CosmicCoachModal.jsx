@@ -4,7 +4,7 @@ import { X, Sparkles, Send, Bot, RefreshCw, Compass, Lightbulb, Zap } from 'luci
 
 export function CosmicCoachModal() {
   const { activeModal, setActiveModal, habits, totalStreakSum } = useHabits();
-  const [mode, setMode] = useState('cosmic'); // 'cosmic' | 'practical'
+  const [mode, setMode] = useState('cosmic'); 
   const [messages, setMessages] = useState(() => [
     {
       role: 'assistant',
@@ -16,7 +16,6 @@ export function CosmicCoachModal() {
 
   if (activeModal !== 'ai') return null;
 
-  // Generate dynamic contextual analysis based on actual habits
   const handleGenerateAdvice = (userQuery) => {
     setIsAnalyzing(true);
 
@@ -61,7 +60,6 @@ export function CosmicCoachModal() {
         </div>
 
         <div className="modal-body" style={{ minHeight: '360px', maxHeight: '55vh' }}>
-          {/* Mode Switcher */}
           <div className="flex items-center justify-between p-2 px-3 bg-white/[0.02] border border-white/5 rounded-lg">
             <span className="text-xs text-slate-400 font-medium">Coach Tone Mode:</span>
             <div className="flex gap-1.5">
@@ -81,8 +79,6 @@ export function CosmicCoachModal() {
               </button>
             </div>
           </div>
-
-          {/* Chat Messages */}
           <div className="flex flex-col gap-3 flex-1 overflow-y-auto pr-1">
             {messages.map((m, idx) => (
               <div
@@ -114,8 +110,6 @@ export function CosmicCoachModal() {
             )}
           </div>
         </div>
-
-        {/* Preset Prompt Buttons */}
         <div style={{ padding: '0 24px 12px 24px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
           <button
             className="cosmic-btn"

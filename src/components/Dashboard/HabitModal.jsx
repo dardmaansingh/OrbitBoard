@@ -65,7 +65,7 @@ export function HabitModal() {
   return (
     <div className="modal-backdrop" onClick={() => setActiveModal(null)}>
       <div className="modal-panel" onClick={(e) => e.stopPropagation()}>
-        {/* Header */}
+
         <div className="modal-header">
           <h2 className="modal-title">New Planet</h2>
           <button
@@ -79,7 +79,7 @@ export function HabitModal() {
 
         <form onSubmit={handleSubmit}>
           <div className="modal-body">
-            {/* Name */}
+
             <div className="form-group">
               <label className="form-label">NAME</label>
               <input
@@ -93,7 +93,6 @@ export function HabitModal() {
               />
             </div>
 
-            {/* Category selection */}
             <div className="form-group">
               <label className="form-label">CATEGORY</label>
               <div className="category-grid">
@@ -118,7 +117,6 @@ export function HabitModal() {
               <span className="form-hint">{selectedCategory.description}</span>
             </div>
 
-            {/* Frequency */}
             <div className="form-group">
               <label className="form-label">FREQUENCY</label>
               <select
@@ -132,7 +130,6 @@ export function HabitModal() {
               </select>
             </div>
 
-            {/* Description */}
             <div className="form-group">
               <label className="form-label">NOTE (OPTIONAL)</label>
               <input

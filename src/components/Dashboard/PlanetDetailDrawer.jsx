@@ -33,7 +33,7 @@ export function PlanetDetailDrawer() {
 
   return (
     <aside className="planet-drawer">
-      {/* Header */}
+
       <div className="drawer-header">
         <div className="drawer-meta-tags">
           <span
@@ -55,7 +55,7 @@ export function PlanetDetailDrawer() {
       </div>
 
       <div className="drawer-content">
-        {/* Habit Identity */}
+
         <div className="drawer-title-block">
           <h2 className="drawer-habit-title">{habit.name}</h2>
           <p className="drawer-habit-desc">
@@ -63,7 +63,6 @@ export function PlanetDetailDrawer() {
           </p>
         </div>
 
-        {/* Primary Action Button */}
         <button
           className={isDoneToday ? 'btn-done-today' : 'btn-primary'}
           style={{ width: '100%', justifyContent: 'center' }}
@@ -73,7 +72,6 @@ export function PlanetDetailDrawer() {
           <span>{isDoneToday ? 'Completed Today (Undo)' : 'Complete Today'}</span>
         </button>
 
-        {/* Monospaced Key Metrics */}
         <div className="drawer-metrics-strip">
           <div className="metric-box">
             <span className="metric-box-val mono">{habit.streak}d</span>
@@ -91,7 +89,6 @@ export function PlanetDetailDrawer() {
           </div>
         </div>
 
-        {/* Lunar Status */}
         <div className="drawer-lunar-row">
           <span className="drawer-lunar-label">LUNAR CYCLE</span>
           <span className="drawer-lunar-val mono">
@@ -99,7 +96,6 @@ export function PlanetDetailDrawer() {
           </span>
         </div>
 
-        {/* 365-Day Monochromatic Heatmap (Heat scale: #3A2A14 -> #7A4E16 -> #C27A1E -> #F2A33A -> #FFD27A) */}
         <div className="drawer-heatmap-section">
           <div className="heatmap-header">
             <span className="heatmap-title">
@@ -130,12 +126,10 @@ export function PlanetDetailDrawer() {
           </div>
         </div>
 
-        {/* Orbit Mechanics Note */}
         <div className="drawer-telemetry-note mono">
           RANK {habit.rank} · RADIUS {habit.orbitDistance?.toFixed(1) || '12.0'}AU · SPEED ∝ r^-1.5
         </div>
 
-        {/* Danger Action */}
         <div className="drawer-footer-actions">
           <button
             onClick={handleDelete}

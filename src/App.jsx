@@ -14,26 +14,20 @@ import { SpaceFeedModal } from './components/Feed/SpaceFeedModal';
 function OrbitBoardApp() {
   return (
     <div className="orbit-app-shell">
-      {/* 3D Solar System Canvas */}
+
       <ThreeCanvas />
 
-      {/* Top Header & Telemetry Readout */}
       <CosmicHeader />
 
-      {/* Camera Mode Dock */}
       <CameraHUD />
 
-      {/* Bottom Today Habit Dock */}
       <HabitQuickHUD />
 
-      {/* Planet Inspection Drawer */}
       <PlanetDetailDrawer />
 
-      {/* Core Modals */}
       <HabitModal />
       <CosmicAnalyticsModal />
 
-      {/* Optional Features behind flag */}
       {FEATURES.aiCoach && <CosmicCoachModal />}
       {FEATURES.spaceFeed && <SpaceFeedModal />}
     </div>

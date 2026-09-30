@@ -12,13 +12,12 @@ export function CosmicAnalyticsModal() {
     habits.reduce((acc, h) => acc + (h.monthlyCompletion ?? h.completionRate ?? 0), 0) / (habits.length || 1)
   );
 
-  // Habits sorted strictly by rank (Rank 1 at top)
   const rankedHabits = [...habits].sort((a, b) => (a.rank || 0) - (b.rank || 0));
 
   return (
     <div className="modal-backdrop" onClick={() => setActiveModal(null)}>
       <div className="modal-panel modal-panel-wide" onClick={(e) => e.stopPropagation()}>
-        {/* Header */}
+
         <div className="modal-header">
           <h2 className="modal-title">Analytics</h2>
           <button
@@ -31,7 +30,7 @@ export function CosmicAnalyticsModal() {
         </div>
 
         <div className="modal-body">
-          {/* One left-aligned readout line (dropped the 3 big stat cards) */}
+
           <div className="analytics-readout-line">
             <span className="readout-segment">
               <span className="readout-num">{totalLogs}</span> total logs
@@ -46,7 +45,6 @@ export function CosmicAnalyticsModal() {
             </span>
           </div>
 
-          {/* Section: Thin Progress Rings */}
           <div className="analytics-section">
             <h3 className="section-title">Progress</h3>
             <div className="rings-grid">
@@ -87,7 +85,6 @@ export function CosmicAnalyticsModal() {
             </div>
           </div>
 
-          {/* Section: Streaks Ranked Table */}
           <div className="analytics-section">
             <h3 className="section-title">Streaks</h3>
             <div className="ranked-table-wrapper">

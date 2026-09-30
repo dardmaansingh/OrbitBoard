@@ -1,7 +1,4 @@
-/**
- * AudioEngine - Pure Web Audio API Cosmic Ambient & Celestial Chimes
- * No external audio files needed; generated dynamically with oscillators and convolution reverbs.
- */
+
 
 class CosmicAudioEngine {
   constructor() {
@@ -20,12 +17,10 @@ class CosmicAudioEngine {
       if (!AudioContext) return;
       this.ctx = new AudioContext();
 
-      // Master ambient gain
       this.droneGain = this.ctx.createGain();
-      this.droneGain.gain.setValueAtTime(0.015, this.ctx.currentTime); // gentle ambient background
+      this.droneGain.gain.setValueAtTime(0.015, this.ctx.currentTime); 
       this.droneGain.connect(this.ctx.destination);
 
-      // Low celestial harmonic drone (432Hz octave harmonic ~ 54Hz and 108Hz)
       this.droneOsc1 = this.ctx.createOscillator();
       this.droneOsc1.type = 'sine';
       this.droneOsc1.frequency.setValueAtTime(54, this.ctx.currentTime);
@@ -34,7 +29,6 @@ class CosmicAudioEngine {
       this.droneOsc2.type = 'triangle';
       this.droneOsc2.frequency.setValueAtTime(108, this.ctx.currentTime);
 
-      // Subtle lowpass filter for deep space warmth
       const filter = this.ctx.createBiquadFilter();
       filter.type = 'lowpass';
       filter.frequency.setValueAtTime(180, this.ctx.currentTime);
@@ -75,7 +69,7 @@ class CosmicAudioEngine {
 
       osc.type = 'sine';
       osc.frequency.setValueAtTime(frequency, now);
-      // Gentle slide up for cosmic magic
+      
       osc.frequency.exponentialRampToValueAtTime(frequency * 1.5, now + 0.3);
 
       gain.gain.setValueAtTime(0.12, now);
@@ -87,12 +81,12 @@ class CosmicAudioEngine {
       osc.start(now);
       osc.stop(now + 1.2);
     } catch (e) {
-      // Audio fallback
+      
     }
   }
 
   playCompletionChime() {
-    // Joyful major arpeggio
+    
     const notes = [528, 660, 792, 1056];
     notes.forEach((freq, idx) => {
       setTimeout(() => {

@@ -15,7 +15,7 @@ export function HabitQuickHUD() {
 
   return (
     <aside className="today-dock">
-      {/* Dock Bar Header */}
+
       <div className="dock-header">
         <div className="dock-title-group">
           <span className="dock-title">Today</span>
@@ -43,7 +43,6 @@ export function HabitQuickHUD() {
         </button>
       </div>
 
-      {/* Flat tray of rows: no cards inside cards */}
       {!isCollapsed && (
         <div className="dock-rows-tray">
           {habits.map((habit) => {
@@ -57,7 +56,7 @@ export function HabitQuickHUD() {
                 style={{ borderLeftColor: habit.color }}
                 onClick={() => focusOnHabitPlanet(habit)}
               >
-                {/* Left: Rank & Habit Title */}
+
                 <div className="dock-row-left">
                   <span className="dock-row-rank">O{habit.rank}</span>
                   <span className="dock-row-name" title={habit.name}>
@@ -65,7 +64,6 @@ export function HabitQuickHUD() {
                   </span>
                 </div>
 
-                {/* Right: Streak & Checkbox */}
                 <div className="dock-row-right">
                   <span className="dock-row-streak" title={`Current streak: ${habit.streak} days`}>
                     {habit.streak}d

@@ -119,7 +119,6 @@ export function SpaceFeedModal() {
         </div>
 
         <div className="modal-body" style={{ maxHeight: '60vh', overflowY: 'auto' }}>
-          {/* Create Post Field */}
           <form
             onSubmit={handleCreatePost}
             style={{
@@ -147,8 +146,6 @@ export function SpaceFeedModal() {
               </button>
             </div>
           </form>
-
-          {/* Posts Stream */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginTop: '6px' }}>
             {posts.map((post) => (
               <div
@@ -163,7 +160,6 @@ export function SpaceFeedModal() {
                   gap: '10px'
                 }}
               >
-                {/* Author Info */}
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                     <div style={{ fontSize: '24px' }}>{post.avatar}</div>
@@ -197,13 +193,9 @@ export function SpaceFeedModal() {
                     {post.streakMilestone}d Streak
                   </span>
                 </div>
-
-                {/* Content */}
                 <p style={{ fontSize: '13px', color: '#e2e8f0', lineHeight: '1.5' }}>
                   {post.content}
                 </p>
-
-                {/* Interactions */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '16px', borderTop: '1px solid rgba(255, 255, 255, 0.05)', paddingTop: '8px' }}>
                   <button
                     onClick={() => handleLike(post.id)}
@@ -228,8 +220,6 @@ export function SpaceFeedModal() {
                     <span>{post.comments.length} Comments</span>
                   </div>
                 </div>
-
-                {/* Comments Preview if any */}
                 {post.comments.length > 0 && (
                   <div style={{ background: 'rgba(30, 41, 59, 0.3)', borderRadius: '8px', padding: '8px 12px', fontSize: '12px', color: '#cbd5e1' }}>
                     <strong style={{ color: '#38bdf8' }}>{post.comments[0].author}:</strong> {post.comments[0].text}

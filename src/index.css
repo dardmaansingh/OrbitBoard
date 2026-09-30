@@ -1,10 +1,7 @@
-/* ==========================================================================
-   OrbitBoard Design System
-   Tokens & Guidelines defined in DESIGN.md
-   ========================================================================== */
+
 
 :root {
-  /* Color Tokens */
+  
   --void: #07080A;
   --surface-1: #0E1013;
   --surface-2: #15181C;
@@ -15,17 +12,14 @@
   --accent-dim: #7A4E16;
   --accent-text: #1A1206;
 
-  /* Typography */
   --font-sans: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif;
   --font-mono: 'IBM Plex Mono', monospace;
 
-  /* Type scale: strictly 4 sizes */
   --text-xs: 11px;
   --text-sm: 13px;
   --text-base: 15px;
   --text-lg: 20px;
 
-  /* Geometry & Transitions */
   --radius-panel: 6px;
   --radius-input: 4px;
   --ease: cubic-bezier(0, 0, 0.2, 1);
@@ -60,7 +54,6 @@ html, body {
   overflow: hidden;
 }
 
-/* Tabular Numerals & Monospace */
 .mono {
   font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
@@ -78,7 +71,6 @@ html, body {
   font-weight: 500;
 }
 
-/* Scrollbars */
 ::-webkit-scrollbar {
   width: 4px;
   height: 4px;
@@ -94,10 +86,6 @@ html, body {
   background: var(--accent-dim);
 }
 
-/* ==========================================================================
-   Base Layout & Canvas
-   ========================================================================== */
-
 .orbit-app-shell {
   position: relative;
   width: 100vw;
@@ -112,10 +100,6 @@ html, body {
   height: 100%;
   z-index: 1;
 }
-
-/* ==========================================================================
-   Header: Flat Readout Strip & Plain Wordmark
-   ========================================================================== */
 
 .orbit-header {
   position: absolute;
@@ -181,10 +165,6 @@ html, body {
   align-items: center;
   gap: 8px;
 }
-
-/* ==========================================================================
-   Buttons & Controls (Strict 4px radius, no gradient fills)
-   ========================================================================== */
 
 .btn-primary {
   display: inline-flex;
@@ -284,10 +264,6 @@ html, body {
   color: #c1583a;
 }
 
-/* ==========================================================================
-   Camera Dock
-   ========================================================================== */
-
 .camera-dock {
   position: absolute;
   top: 64px;
@@ -325,10 +301,6 @@ html, body {
   color: var(--accent);
   background-color: var(--surface-2);
 }
-
-/* ==========================================================================
-   Today Dock (Flat Tray of Rows - NO Cards-in-Card)
-   ========================================================================== */
 
 .today-dock {
   position: absolute;
@@ -483,10 +455,6 @@ html, body {
   border-color: var(--accent);
 }
 
-/* ==========================================================================
-   Modals & Drawers
-   ========================================================================== */
-
 .modal-backdrop {
   position: fixed;
   inset: 0;
@@ -552,7 +520,6 @@ html, body {
   border-top: 1px solid var(--line);
 }
 
-/* Form controls */
 .form-group {
   display: flex;
   flex-direction: column;
@@ -625,10 +592,6 @@ html, body {
   border-radius: 50%;
   flex-shrink: 0;
 }
-
-/* ==========================================================================
-   Analytics: Readout Line, Thin Rings & Streaks Table
-   ========================================================================== */
 
 .analytics-readout-line {
   display: flex;
@@ -736,7 +699,6 @@ html, body {
   color: var(--text-muted);
 }
 
-/* Ranked Table */
 .ranked-table-wrapper {
   border: 1px solid var(--line);
   border-radius: var(--radius-panel);
@@ -787,10 +749,6 @@ html, body {
   border-radius: 50%;
   flex-shrink: 0;
 }
-
-/* ==========================================================================
-   Planet Detail Drawer
-   ========================================================================== */
 
 .planet-drawer {
   position: absolute;
@@ -923,7 +881,6 @@ html, body {
   color: var(--text);
 }
 
-/* 365-Day Heatmap (Monochromatic Amber: #3A2A14 -> #7A4E16 -> #C27A1E -> #F2A33A -> #FFD27A) */
 .drawer-heatmap-section {
   display: flex;
   flex-direction: column;
@@ -1013,7 +970,6 @@ html, body {
   justify-content: flex-end;
 }
 
-/* Tooltip */
 .planet-hover-tooltip {
   position: absolute;
   bottom: 90px;

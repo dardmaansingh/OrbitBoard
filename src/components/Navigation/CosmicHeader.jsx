@@ -26,12 +26,11 @@ export function CosmicHeader() {
 
   return (
     <header className="orbit-header">
-      {/* Left: Plain, understated wordmark */}
+
       <div className="brand-section" onClick={resetCameraToOverview} title="Reset to solar center">
         <span className="brand-wordmark">OrbitBoard</span>
       </div>
 
-      {/* Middle: Flat readout strip in mono, hairline-separated */}
       <div className="readout-strip">
         <span className="readout-item">
           <span className="readout-label">STREAK</span>
@@ -49,9 +48,8 @@ export function CosmicHeader() {
         </span>
       </div>
 
-      {/* Right: Actions */}
       <div className="header-actions">
-        {/* Audio Toggle */}
+
         <button
           className="btn-icon"
           onClick={toggleSound}
@@ -61,7 +59,6 @@ export function CosmicHeader() {
           {isMuted ? <VolumeX size={15} /> : <Volume2 size={15} />}
         </button>
 
-        {/* Optional AI Coach under feature flag */}
         {FEATURES.aiCoach && (
           <button className="btn-ghost" onClick={() => setActiveModal('ai')}>
             <Sparkles size={14} />
@@ -69,7 +66,6 @@ export function CosmicHeader() {
           </button>
         )}
 
-        {/* Optional Space Feed under feature flag */}
         {FEATURES.spaceFeed && (
           <button className="btn-ghost" onClick={() => setActiveModal('feed')}>
             <Users size={14} />
@@ -77,7 +73,6 @@ export function CosmicHeader() {
           </button>
         )}
 
-        {/* Analytics (ghost button) */}
         <button
           className="btn-ghost"
           onClick={() => setActiveModal('analytics')}
@@ -85,7 +80,6 @@ export function CosmicHeader() {
           Analytics
         </button>
 
-        {/* New Planet (amber solid button) */}
         <button
           className="btn-primary"
           onClick={() => setActiveModal('create')}

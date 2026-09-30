@@ -42,7 +42,6 @@ export function ThreeCanvas() {
     };
   }, []);
 
-  // Sync ranked habits to 3D scene
   useEffect(() => {
     if (sceneInstanceRef.current) {
       sceneInstanceRef.current.syncHabits(
@@ -53,7 +52,6 @@ export function ThreeCanvas() {
     }
   }, [habits, selectedPlanetHabit]);
 
-  // Handle camera mode changes
   useEffect(() => {
     if (!sceneInstanceRef.current) return;
     if (cameraMode === 'solar' || cameraMode === 'free') {

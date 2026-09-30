@@ -1,15 +1,5 @@
 import * as THREE from 'three';
 
-/**
- * SunModel - Physically Motivated Solar Shader
- * Features per DESIGN.md:
- * - Limb darkening and slow procedural granulation (no flat textures)
- * - Exact color stops:
- *   Core #FFF6DC -> #FFD27A (35%) -> #F29A2E (65%) -> #B5471B (88%) -> corona fading to rgba(181,71,27,0)
- * - Corona glow is warm only
- * - Physical PointLight casting warm illumination across orbiting planets
- */
-
 const SunSurfaceShader = {
   vertexShader: `
     varying vec2 vUv;
@@ -33,7 +23,6 @@ const SunSurfaceShader = {
     varying vec3 vPosition;
     varying vec3 vViewDir;
 
-    // Simplex Noise 3D helper functions
     vec4 permute(vec4 x) { return mod(((x*34.0)+1.0)*x, 289.0); }
     vec4 taylorInvSqrt(vec4 r) { return 1.79284291400159 - 0.85373472095314 * r; }
 
@@ -84,26 +73,21 @@ const SunSurfaceShader = {
     }
 
     void main() {
-      // Physical limb angle: mu = cos(theta) = normal . viewDir
       float mu = clamp(dot(normalize(vNormal), normalize(vViewDir)), 0.0, 1.0);
-      float r = 1.0 - mu; // 0.0 at disk center, 1.0 at edge
+      float r = 1.0 - mu;
 
-      // Slow procedural solar granulation (cellular convection cells)
       float tSlow = uTime * 0.06;
       vec3 pGranule = vPosition * 2.2;
       float granule1 = snoise(pGranule + vec3(tSlow * 0.5, tSlow * 0.3, 0.0));
       float granule2 = snoise(pGranule * 2.0 - vec3(0.0, tSlow * 0.4, tSlow * 0.2));
       float granulation = (granule1 * 0.7 + granule2 * 0.3) * 0.07;
 
-      // Radial parameter with slow granulation modulation
       float factor = clamp(r + granulation, 0.0, 1.0);
 
-      // Exact Design Tokens:
-      // core #FFF6DC -> #FFD27A (35%) -> #F29A2E (65%) -> #B5471B (88%)
-      vec3 c0 = vec3(1.0, 0.965, 0.863);  // #FFF6DC (Core)
-      vec3 c35 = vec3(1.0, 0.824, 0.478); // #FFD27A (35%)
-      vec3 c65 = vec3(0.949, 0.604, 0.180); // #F29A2E (65%)
-      vec3 c88 = vec3(0.710, 0.278, 0.106); // #B5471B (88%)
+      vec3 c0 = vec3(1.0, 0.965, 0.863);
+      vec3 c35 = vec3(1.0, 0.824, 0.478);
+      vec3 c65 = vec3(0.949, 0.604, 0.180);
+      vec3 c88 = vec3(0.710, 0.278, 0.106);
       vec3 cLimb = vec3(0.48, 0.16, 0.06);
 
       vec3 color;
@@ -117,7 +101,6 @@ const SunSurfaceShader = {
         color = mix(c88, cLimb, (factor - 0.88) / 0.12);
       }
 
-      // Astronomical limb darkening factor
       color *= (0.4 + 0.6 * pow(mu, 0.3));
 
       gl_FragColor = vec4(color, 1.0);
@@ -125,7 +108,6 @@ const SunSurfaceShader = {
   `
 };
 
-// Corona Warm Shell Shader (Corona fading to rgba(181, 71, 27, 0))
 const CoronaWarmShader = {
   vertexShader: `
     varying vec3 vNormal;
@@ -178,7 +160,6 @@ export class SunModel {
   }
 
   createWarmCoronas() {
-    // Inner Warm Corona Shell (#F29A2E)
     const innerGeo = new THREE.SphereGeometry(this.radius * 1.07, 48, 48);
     const innerMat = new THREE.ShaderMaterial({
       vertexShader: CoronaWarmShader.vertexShader,
@@ -195,7 +176,6 @@ export class SunModel {
     this.innerCorona = new THREE.Mesh(innerGeo, innerMat);
     this.group.add(this.innerCorona);
 
-    // Outer Warm Corona Shell (#B5471B fading to transparent 0)
     const outerGeo = new THREE.SphereGeometry(this.radius * 1.22, 48, 48);
     const outerMat = new THREE.ShaderMaterial({
       vertexShader: CoronaWarmShader.vertexShader,
@@ -214,7 +194,6 @@ export class SunModel {
   }
 
   createWarmHalo() {
-    // Soft radial warm flare sprite
     const canvas = document.createElement('canvas');
     canvas.width = 256;
     canvas.height = 256;
@@ -244,7 +223,6 @@ export class SunModel {
   }
 
   createLight() {
-    // Warm solar illumination casting natural light on planets
     this.pointLight = new THREE.PointLight(0xfff6dc, 3.2, 350, 0.5);
     this.pointLight.castShadow = true;
     this.pointLight.shadow.mapSize.width = 1024;
@@ -253,7 +231,6 @@ export class SunModel {
     this.pointLight.shadow.camera.far = 250;
     this.group.add(this.pointLight);
 
-    // Warm faint ambient baseline
     const ambientLight = new THREE.AmbientLight(0x15110c, 0.35);
     this.scene.add(ambientLight);
     this.ambientLight = ambientLight;
@@ -264,7 +241,6 @@ export class SunModel {
       this.uniforms.uTime.value += delta;
     }
     if (this.haloSprite) {
-      // Subtle organic breath
       const s = this.radius * (3.8 + Math.sin(this.uniforms.uTime.value * 0.6) * 0.06);
       this.haloSprite.scale.set(s, s, 1);
     }

@@ -11,7 +11,7 @@ export class SolarSystemScene {
     this.onPlanetClick = options.onPlanetClick || (() => {});
     this.onPlanetHover = options.onPlanetHover || (() => {});
 
-    this.planets = new Map(); // habitId -> PlanetModel
+    this.planets = new Map(); 
     this.activeFocusHabitId = null;
     this.isTrackingPlanet = false;
 
@@ -30,7 +30,7 @@ export class SolarSystemScene {
 
   initScene() {
     this.scene = new THREE.Scene();
-    // Transparent scene background allows the warm light-motivated CSS vignette to show through
+    
     this.scene.background = null;
 
     const width = this.container.clientWidth;
@@ -66,7 +66,7 @@ export class SolarSystemScene {
 
     this.controls.addEventListener('start', () => {
       if (this.isTrackingPlanet) {
-        // User taking over control
+        
       }
     });
   }
@@ -78,13 +78,11 @@ export class SolarSystemScene {
   }
 
   initObjects() {
-    // 1. Sparse Starfield
+    
     this.deepSpace = new DeepSpace(this.scene);
 
-    // 2. Solar Shader Sun
     this.sun = new SunModel(this.scene);
 
-    // 3. Orbit Paths Manager
     this.orbitsManager = new OrbitPathsManager(this.scene);
   }
 
@@ -93,7 +91,6 @@ export class SolarSystemScene {
     this.completedChecker = completedChecker;
     this.selectedHabitId = selectedHabitId;
 
-    // Remove deleted planets
     const currentIds = new Set(habits.map(h => h.id));
     for (const [id, planet] of this.planets.entries()) {
       if (!currentIds.has(id)) {
@@ -102,7 +99,6 @@ export class SolarSystemScene {
       }
     }
 
-    // Add or update planets
     habits.forEach(habit => {
       let planet = this.planets.get(habit.id);
       if (!planet) {
@@ -113,7 +109,6 @@ export class SolarSystemScene {
       }
     });
 
-    // Update orbit lines
     this.orbitsManager.updateOrbits(habits, selectedHabitId, this.planets);
   }
 
@@ -229,22 +224,18 @@ export class SolarSystemScene {
 
     const delta = this.clock.getDelta();
 
-    // 1. Update Sun & Deep Space
     if (this.sun) this.sun.update(delta);
     if (this.deepSpace) this.deepSpace.update(delta);
 
-    // 2. Update Planets
     for (const [id, planet] of this.planets.entries()) {
       const isDone = this.completedChecker ? this.completedChecker(id) : false;
       planet.update(delta, isDone);
     }
 
-    // 3. Keep Orbit Lines Synchronized with animated radii
     if (this.orbitsManager) {
       this.orbitsManager.syncRadii(this.planets);
     }
 
-    // 4. Camera Fly-To & Tracking Logic
     if (this.activeFocusHabitId) {
       const targetPlanet = this.planets.get(this.activeFocusHabitId);
       if (targetPlanet) {

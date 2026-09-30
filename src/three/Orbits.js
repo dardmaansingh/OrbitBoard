@@ -1,17 +1,9 @@
 import * as THREE from 'three';
 
-/**
- * OrbitPathsManager - Geometric Planetary Orbit Traces
- * Implements Phase 3 Design Guidelines:
- * - Orbit lines: White at 6-8% opacity (0.07)
- * - Rank 1's orbit: Gets its planet color at ~35% opacity (0.35)
- * - Dynamically scaled to match each planet's current animated radius
- */
-
 export class OrbitPathsManager {
   constructor(scene) {
     this.scene = scene;
-    this.orbitMeshes = new Map(); // habitId -> lineMesh
+    this.orbitMeshes = new Map(); 
     this.unitGeometry = this.createUnitCircleGeometry();
   }
 
@@ -28,7 +20,6 @@ export class OrbitPathsManager {
   updateOrbits(habits, selectedId, planetsMap) {
     const currentIds = new Set(habits.map(h => h.id));
 
-    // Remove deleted orbits
     for (const [id, mesh] of this.orbitMeshes.entries()) {
       if (!currentIds.has(id)) {
         this.scene.remove(mesh);
@@ -37,7 +28,6 @@ export class OrbitPathsManager {
       }
     }
 
-    // Update or create orbit rings
     habits.forEach(habit => {
       let orbit = this.orbitMeshes.get(habit.id);
       const isRank1 = habit.rank === 1;
@@ -57,7 +47,6 @@ export class OrbitPathsManager {
         this.orbitMeshes.set(habit.id, orbit);
       }
 
-      // Determine color & opacity per DESIGN.md
       if (isRank1) {
         orbit.material.color.setStyle(habit.color || '#F2A33A');
         orbit.material.opacity = 0.35;
@@ -66,10 +55,9 @@ export class OrbitPathsManager {
         orbit.material.opacity = 0.28;
       } else {
         orbit.material.color.setHex(0xffffff);
-        orbit.material.opacity = 0.07; // 7% opacity for standard orbits
+        orbit.material.opacity = 0.07; 
       }
 
-      // Sync scale to the actual animated planet radius if available
       const planet = planetsMap ? planetsMap.get(habit.id) : null;
       const radius = planet ? planet.currentRadius : (habit.orbitDistance || 16);
       orbit.scale.set(radius, 1, radius);

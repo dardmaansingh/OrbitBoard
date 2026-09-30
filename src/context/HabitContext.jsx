@@ -5,11 +5,10 @@ import { rankHabits, getCategoryColor, calculateMonthlyCompletion } from '../uti
 
 const HabitContext = createContext(null);
 
-// Astronomical Moon Phase Calculator
 export function getMoonPhaseDetails(date = new Date()) {
   const d = new Date(date);
   const refDate = new Date('2024-01-11T11:57:00Z');
-  const synodicMonth = 29.53058867; // Average lunar synodic month in days
+  const synodicMonth = 29.53058867; 
   const diffDays = (d.getTime() - refDate.getTime()) / (1000 * 60 * 60 * 24);
   const phaseValue = ((diffDays % synodicMonth) + synodicMonth) % synodicMonth;
 
@@ -45,12 +44,10 @@ export function getMoonPhaseDetails(date = new Date()) {
   return { phaseName, illumination, dayOfCycle: Math.floor(phaseValue) };
 }
 
-// Generate realistic 365-day history for pre-seeded habits
 function generateSampleLogs(habitId, streak, completionRate) {
   const logs = [];
   const today = new Date();
 
-  // Mark today and previous consecutive days for streak
   for (let i = 0; i < streak; i++) {
     const d = new Date(today);
     d.setDate(d.getDate() - i);
@@ -62,7 +59,6 @@ function generateSampleLogs(habitId, streak, completionRate) {
     });
   }
 
-  // Prepopulate previous days based on completion rate
   for (let i = streak + 1; i < 365; i++) {
     if (Math.random() < (completionRate / 100)) {
       const d = new Date(today);
@@ -79,7 +75,6 @@ function generateSampleLogs(habitId, streak, completionRate) {
   return logs;
 }
 
-// Default Seed Habits with Authentic Desaturated Pigments (NO purple)
 const DEFAULT_HABITS = [
   {
     id: 'habit-1',
@@ -197,9 +192,8 @@ export function HabitProvider({ children }) {
 
   const [selectedPlanetHabit, setSelectedPlanetHabit] = useState(null);
   const [cameraMode, setCameraMode] = useState('free');
-  const [activeModal, setActiveModal] = useState(null); // 'create' | 'analytics'
+  const [activeModal, setActiveModal] = useState(null); 
 
-  // Persist habits & logs
   useEffect(() => {
     try {
       localStorage.setItem('orbitboard_habits_v3', JSON.stringify(rawHabits));
@@ -216,31 +210,26 @@ export function HabitProvider({ children }) {
     }
   }, [habitLogs]);
 
-  // Today's ISO date string
   const todayStr = useMemo(() => new Date().toISOString().split('T')[0], []);
 
-  // Compute Ranked Habits
   const rankedHabits = useMemo(() => {
     return rankHabits(rawHabits, habitLogs, new Date());
   }, [rawHabits, habitLogs]);
 
-  // Keep selected habit in sync with ranked data
   const currentSelectedHabit = useMemo(() => {
     if (!selectedPlanetHabit) return null;
     return rankedHabits.find(h => h.id === selectedPlanetHabit.id) || selectedPlanetHabit;
   }, [selectedPlanetHabit, rankedHabits]);
 
-  // Check if a habit is completed today
   const isHabitCompletedToday = (habitId) => {
     return habitLogs.some(log => log.habitId === habitId && log.completedAt === todayStr);
   };
 
-  // Toggle completion for today
   const toggleHabitToday = (habitId) => {
     const isCompleted = isHabitCompletedToday(habitId);
 
     if (!isCompleted) {
-      // Mark Complete
+      
       const newLog = {
         id: `log_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
         habitId,
@@ -271,7 +260,7 @@ export function HabitProvider({ children }) {
         colors: ['#F2A33A', '#E8E4DC', '#7A4E16']
       });
     } else {
-      // Unmark Complete
+      
       setHabitLogs(prev => prev.filter(log => !(log.habitId === habitId && log.completedAt === todayStr)));
       setRawHabits(prev => prev.map(h => {
         if (h.id === habitId) {
@@ -286,7 +275,6 @@ export function HabitProvider({ children }) {
     }
   };
 
-  // Add new Habit
   const addHabit = (habitData) => {
     const newHabit = {
       id: `habit-${Date.now()}`,
@@ -311,7 +299,6 @@ export function HabitProvider({ children }) {
     audioEngine.playCompletionChime();
   };
 
-  // Delete Habit
   const deleteHabit = (habitId) => {
     setRawHabits(prev => prev.filter(h => h.id !== habitId));
     setHabitLogs(prev => prev.filter(log => log.habitId !== habitId));
@@ -320,7 +307,6 @@ export function HabitProvider({ children }) {
     }
   };
 
-  // Heatmap Data ( past 365 days )
   const getYearlyHeatmap = (habitId) => {
     const datesMap = {};
     habitLogs

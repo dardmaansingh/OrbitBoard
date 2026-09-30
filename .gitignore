@@ -1,26 +1,63 @@
 # Dependencies
 node_modules/
+.pnp
+.pnp.js
 
-# Build output
+# Production build output
 dist/
+dist-ssr/
+build/
 
-# Environment variables
+# Local Environment Variables & Secrets
 .env
 .env.local
-.env.*.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.env
+*.env.*
+*.pem
+*.key
+*.cert
+*.crt
 
 # Vite
 .vite/
 
-# OS files
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# OS metadata
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
 Thumbs.db
 
-# VS Code
-.vscode/
-
 # Logs
+logs/
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
+lerna-debug.log*
+
+# Testing & Coverage
+coverage/
+*.lcov
+
+# Temporary files & caches
+.eslintcache
+.stylelintcache
+tmp/
+temp/

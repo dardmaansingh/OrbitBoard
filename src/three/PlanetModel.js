@@ -1,30 +1,16 @@
 import * as THREE from 'three';
 import { getCategoryColor } from '../utils/ranking';
 
-/**
- * PlanetModel - Photorealistic Procedural Planets
- * Features:
- * - Desaturated real planetary pigment maps (NO purple)
- * - Smooth 1.5s radius transition with ease-out when rank changes (angle is preserved so planet never teleports)
- * - Keplerian orbital velocity (speed ∝ r^-1.5)
- * - Size strictly mapped to monthly completion %
- * - Independent rotating cloud sphere & subtle atmospheric Rayleigh scattering
- * - Orbiting moon with solar illumination
- */
-
-// Ease-out cubic function for smooth 1.5s orbital repositioning
 function easeOutCubic(x) {
   return 1 - Math.pow(1 - x, 3);
 }
 
-// Procedural Texture Generators with desaturated pigments
 function createTerranTexture(baseColorHex) {
   const canvas = document.createElement('canvas');
   canvas.width = 1024;
   canvas.height = 512;
   const ctx = canvas.getContext('2d');
 
-  // Deep oceanic base
   const oceanGrad = ctx.createLinearGradient(0, 0, 0, 512);
   oceanGrad.addColorStop(0, '#101726');
   oceanGrad.addColorStop(0.5, '#1e293b');
@@ -32,7 +18,6 @@ function createTerranTexture(baseColorHex) {
   ctx.fillStyle = oceanGrad;
   ctx.fillRect(0, 0, 1024, 512);
 
-  // Continental landmasses using category pigment
   ctx.fillStyle = baseColorHex;
   for (let i = 0; i < 24; i++) {
     const cx = (Math.sin(i * 123.4) * 0.5 + 0.5) * 1024;
@@ -43,7 +28,6 @@ function createTerranTexture(baseColorHex) {
     ctx.arc(cx, cy, radius, 0, Math.PI * 2);
     ctx.fill();
 
-    // Mountain ridges
     ctx.fillStyle = '#26221c';
     ctx.beginPath();
     ctx.arc(cx + 8, cy - 4, radius * 0.4, 0, Math.PI * 2);
@@ -51,7 +35,6 @@ function createTerranTexture(baseColorHex) {
     ctx.fillStyle = baseColorHex;
   }
 
-  // Polar Ice Caps
   ctx.fillStyle = '#e2e8f0';
   ctx.fillRect(0, 0, 1024, 32);
   ctx.fillRect(0, 480, 1024, 32);
@@ -86,7 +69,6 @@ function createGasGiantTexture(colorA, colorB, stormColor) {
   canvas.height = 512;
   const ctx = canvas.getContext('2d');
 
-  // Multi-band atmospheric gradients
   const grad = ctx.createLinearGradient(0, 0, 0, 512);
   for (let y = 0; y <= 512; y += 32) {
     const factor = y / 512;
@@ -96,13 +78,11 @@ function createGasGiantTexture(colorA, colorB, stormColor) {
   ctx.fillStyle = grad;
   ctx.fillRect(0, 0, 1024, 512);
 
-  // Storm Vortex
   ctx.fillStyle = stormColor;
   ctx.beginPath();
   ctx.ellipse(650, 310, 70, 36, 0.1, 0, Math.PI * 2);
   ctx.fill();
 
-  // Subtle wispy storm ripples
   ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
   for (let i = 0; i < 35; i++) {
     const y = 80 + (i * 11) % 360;
@@ -121,7 +101,6 @@ function createCrateredTexture(baseColorHex, darkHex) {
   ctx.fillStyle = baseColorHex;
   ctx.fillRect(0, 0, 1024, 512);
 
-  // Impact craters
   for (let i = 0; i < 90; i++) {
     const cx = (Math.sin(i * 37.1) * 0.5 + 0.5) * 1024;
     const cy = (Math.cos(i * 83.3) * 0.5 + 0.5) * 512;
@@ -151,7 +130,7 @@ function createRingsTexture(primaryColorHex, secondaryColorHex) {
   grad.addColorStop(0, 'rgba(0, 0, 0, 0)');
   grad.addColorStop(0.12, primaryColorHex);
   grad.addColorStop(0.45, secondaryColorHex);
-  grad.addColorStop(0.52, 'rgba(0, 0, 0, 0.1)'); // Cassini gap
+  grad.addColorStop(0.52, 'rgba(0, 0, 0, 0.1)'); 
   grad.addColorStop(0.58, primaryColorHex);
   grad.addColorStop(0.85, secondaryColorHex);
   grad.addColorStop(1.0, 'rgba(0, 0, 0, 0)');
@@ -168,17 +147,15 @@ export class PlanetModel {
     this.habit = habitData;
     this.group = new THREE.Group();
 
-    // Preserve orbital angle across transitions
     this.orbitAngle = Math.random() * Math.PI * 2;
     this.moonAngle = Math.random() * Math.PI * 2;
 
-    // Smooth radius animation state
     const initialRadius = Number(this.habit.orbitDistance) || 16.0;
     this.currentRadius = initialRadius;
     this.targetRadius = initialRadius;
     this.startRadius = initialRadius;
     this.transitionProgress = 1.0;
-    this.transitionDuration = 1.5; // 1.5s smooth transition
+    this.transitionDuration = 1.5; 
 
     this.initPlanet();
     this.scene.add(this.group);
@@ -188,13 +165,11 @@ export class PlanetModel {
     const { category, completionRate = 50, monthlyCompletion = 50, hasRings } = this.habit;
     const categoryColor = getCategoryColor(category);
 
-    // Planet size strictly mapped to monthly completion %
     const completion = monthlyCompletion != null ? monthlyCompletion : completionRate;
     const scaleFactor = 0.75 + (Math.max(0, Math.min(100, completion)) / 100) * 0.55;
     this.baseRadius = 1.4;
     this.radius = this.baseRadius * scaleFactor;
 
-    // 1. Surface Material & Texture based on authentic category pigments
     let surfaceTexture;
     let roughness = 0.6;
     let metalness = 0.08;
@@ -203,31 +178,31 @@ export class PlanetModel {
       case 'Health':
       case 'Fitness':
       case 'Health / Fitness':
-        // Mars rust (#C1583A)
+        
         surfaceTexture = createCrateredTexture('#C1583A', '#722b18');
         roughness = 0.75;
         break;
       case 'Knowledge':
-        // Saturn ochre (#D4A55A)
+        
         surfaceTexture = createGasGiantTexture('#5c3c13', '#D4A55A', '#8f6828');
         break;
       case 'Mindfulness':
-        // Ocean teal (#4E9F98)
+        
         surfaceTexture = createTerranTexture('#4E9F98');
         roughness = 0.45;
         break;
       case 'Focus':
-        // Neptune blue muted (#4A6FA5)
+        
         surfaceTexture = createGasGiantTexture('#1b2d4b', '#4A6FA5', '#2a4369');
         roughness = 0.35;
         break;
       case 'Creativity':
-        // Dusty rose (#B5667A)
+        
         surfaceTexture = createGasGiantTexture('#542431', '#B5667A', '#7a3b4c');
         break;
       case 'Other':
       default:
-        // Jupiter sand (#B08D6E)
+        
         surfaceTexture = createGasGiantTexture('#4d3725', '#B08D6E', '#78563c');
         break;
     }
@@ -245,7 +220,6 @@ export class PlanetModel {
     this.mesh.userData = { habitId: this.habit.id, habitName: this.habit.name, habit: this.habit };
     this.group.add(this.mesh);
 
-    // 2. Cloud Layer (for ocean / mindfulness planets)
     if (category === 'Mindfulness') {
       const cloudGeo = new THREE.SphereGeometry(this.radius * 1.025, 36, 36);
       const cloudMat = new THREE.MeshStandardMaterial({
@@ -259,7 +233,6 @@ export class PlanetModel {
       this.group.add(this.cloudsMesh);
     }
 
-    // 3. Atmospheric Rayleigh Scattering Fresnel Glow
     const atmosGeo = new THREE.SphereGeometry(this.radius * 1.12, 32, 32);
     const atmosMat = new THREE.ShaderMaterial({
       vertexShader: `
@@ -289,15 +262,12 @@ export class PlanetModel {
     this.atmosphereMesh = new THREE.Mesh(atmosGeo, atmosMat);
     this.group.add(this.atmosphereMesh);
 
-    // 4. Rings (for Knowledge and ringed worlds)
     if (hasRings || category === 'Knowledge' || category === 'Creativity') {
       this.createPlanetaryRings(categoryColor);
     }
 
-    // 5. Natural Orbiting Moon
     this.createNaturalMoon();
 
-    // 6. Subtle Completion Ring
     this.createCompletionAura();
   }
 
@@ -357,7 +327,7 @@ export class PlanetModel {
   createCompletionAura() {
     const auraGeo = new THREE.RingGeometry(this.radius * 1.25, this.radius * 1.32, 48);
     const auraMat = new THREE.MeshBasicMaterial({
-      color: 0xf2a33a, // Warm amber
+      color: 0xf2a33a, 
       side: THREE.DoubleSide,
       transparent: true,
       opacity: 0.0
@@ -382,7 +352,6 @@ export class PlanetModel {
       this.setTargetRadius(newHabit.orbitDistance);
     }
 
-    // Update scale based on monthly completion
     const completion = newHabit.monthlyCompletion != null ? newHabit.monthlyCompletion : newHabit.completionRate;
     const scaleFactor = 0.75 + (Math.max(0, Math.min(100, completion || 50)) / 100) * 0.55;
     const newRadius = this.baseRadius * scaleFactor;
@@ -396,7 +365,7 @@ export class PlanetModel {
   }
 
   update(delta, isCompletedToday) {
-    // 1. Smooth Orbit Radius Transition (1.5s with cubic ease-out)
+    
     if (this.transitionProgress < 1.0) {
       this.transitionProgress += delta / this.transitionDuration;
       if (this.transitionProgress > 1.0) {
@@ -408,18 +377,14 @@ export class PlanetModel {
       this.currentRadius = this.targetRadius;
     }
 
-    // 2. Keplerian Orbital Angular Velocity (speed ∝ r^-1.5)
-    // Most consistent habit (closest orbit) is visibly the fastest.
     const safeRadius = Math.max(8.0, this.currentRadius);
     const angularSpeed = 18.0 * Math.pow(safeRadius, -1.5);
 
-    // Increment angle smoothly - angle is NEVER reset, so the planet NEVER teleports!
     this.orbitAngle += delta * angularSpeed;
 
     this.group.position.x = Math.cos(this.orbitAngle) * this.currentRadius;
     this.group.position.z = Math.sin(this.orbitAngle) * this.currentRadius;
 
-    // 3. Axial Planetary Rotation
     if (this.mesh) {
       this.mesh.rotation.y += delta * 0.45;
     }
@@ -427,13 +392,11 @@ export class PlanetModel {
       this.cloudsMesh.rotation.y += delta * 0.55;
     }
 
-    // 4. Moon Orbit
     if (this.moonGroup) {
       this.moonAngle += delta * 1.5;
       this.moonGroup.rotation.y = this.moonAngle;
     }
 
-    // 5. Completion Aura (subtle warm amber pulse when completed today)
     if (this.auraMesh) {
       if (isCompletedToday) {
         this.auraMesh.material.opacity = 0.45 + Math.sin(Date.now() * 0.003) * 0.15;
