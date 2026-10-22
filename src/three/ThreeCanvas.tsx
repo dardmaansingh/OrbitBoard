@@ -1,28 +1,34 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { SolarSystemScene } from './SolarSystemScene';
 import { useHabits } from '../context/HabitContext';
+import { TooltipState, RankedHabit, HabitContextType } from '../types';
 
-export function ThreeCanvas() {
-  const containerRef = useRef(null);
-  const sceneInstanceRef = useRef(null);
+export function ThreeCanvas(): React.ReactElement {
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const sceneInstanceRef = useRef<any>(null);
   const {
     habits,
     isHabitCompletedToday,
     selectedPlanetHabit,
     focusOnHabitPlanet,
     cameraMode
-  } = useHabits();
+  } = useHabits() as unknown as HabitContextType;
 
-  const [tooltip, setTooltip] = useState({ visible: false, habit: null, screenX: 0, screenY: 0 });
+  const [tooltip, setTooltip] = useState<TooltipState>({
+    visible: false,
+    habit: null,
+    screenX: 0,
+    screenY: 0
+  });
 
   useEffect(() => {
     if (!containerRef.current) return;
 
     const scene = new SolarSystemScene(containerRef.current, {
-      onPlanetClick: (habit) => {
+      onPlanetClick: (habit: RankedHabit) => {
         focusOnHabitPlanet(habit);
       },
-      onPlanetHover: (info) => {
+      onPlanetHover: (info: RankedHabit | null) => {
         if (info) {
           setTooltip({
             visible: true,
@@ -40,7 +46,7 @@ export function ThreeCanvas() {
       scene.dispose();
       sceneInstanceRef.current = null;
     };
-  }, []);
+  }, [focusOnHabitPlanet]);
 
   useEffect(() => {
     if (sceneInstanceRef.current) {
@@ -50,7 +56,7 @@ export function ThreeCanvas() {
         selectedPlanetHabit ? selectedPlanetHabit.id : null
       );
     }
-  }, [habits, selectedPlanetHabit]);
+  }, [habits, selectedPlanetHabit, isHabitCompletedToday]);
 
   useEffect(() => {
     if (!sceneInstanceRef.current) return;

@@ -1,24 +1,20 @@
-
-
 class CosmicAudioEngine {
-  constructor() {
-    this.ctx = null;
-    this.isMuted = false;
-    this.isInitialized = false;
-    this.droneGain = null;
-    this.droneOsc1 = null;
-    this.droneOsc2 = null;
-  }
+  private ctx: AudioContext | null = null;
+  public isMuted: boolean = false;
+  private isInitialized: boolean = false;
+  private droneGain: GainNode | null = null;
+  private droneOsc1: OscillatorNode | null = null;
+  private droneOsc2: OscillatorNode | null = null;
 
-  init() {
+  public init(): void {
     if (this.isInitialized) return;
     try {
-      const AudioContext = window.AudioContext || window.webkitAudioContext;
-      if (!AudioContext) return;
-      this.ctx = new AudioContext();
+      const AudioCtxClass = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+      if (!AudioCtxClass) return;
+      this.ctx = new AudioCtxClass();
 
       this.droneGain = this.ctx.createGain();
-      this.droneGain.gain.setValueAtTime(0.015, this.ctx.currentTime); 
+      this.droneGain.gain.setValueAtTime(0.015, this.ctx.currentTime);
       this.droneGain.connect(this.ctx.destination);
 
       this.droneOsc1 = this.ctx.createOscillator();
@@ -46,7 +42,7 @@ class CosmicAudioEngine {
     }
   }
 
-  toggleMute() {
+  public toggleMute(): boolean {
     this.isMuted = !this.isMuted;
     if (this.droneGain && this.ctx) {
       this.droneGain.gain.setTargetAtTime(this.isMuted ? 0 : 0.015, this.ctx.currentTime, 0.1);
@@ -54,7 +50,7 @@ class CosmicAudioEngine {
     return this.isMuted;
   }
 
-  playCelestialChime(frequency = 528) {
+  public playCelestialChime(frequency: number = 528): void {
     if (this.isMuted) return;
     if (!this.isInitialized) this.init();
     if (!this.ctx) return;
@@ -69,7 +65,6 @@ class CosmicAudioEngine {
 
       osc.type = 'sine';
       osc.frequency.setValueAtTime(frequency, now);
-      
       osc.frequency.exponentialRampToValueAtTime(frequency * 1.5, now + 0.3);
 
       gain.gain.setValueAtTime(0.12, now);
@@ -81,12 +76,11 @@ class CosmicAudioEngine {
       osc.start(now);
       osc.stop(now + 1.2);
     } catch (e) {
-      
+      // Audio autoplay policy catch
     }
   }
 
-  playCompletionChime() {
-    
+  public playCompletionChime(): void {
     const notes = [528, 660, 792, 1056];
     notes.forEach((freq, idx) => {
       setTimeout(() => {
@@ -95,7 +89,7 @@ class CosmicAudioEngine {
     });
   }
 
-  playPlanetZoomSound() {
+  public playPlanetZoomSound(): void {
     if (this.isMuted || !this.ctx) return;
     try {
       const now = this.ctx.currentTime;
@@ -110,7 +104,9 @@ class CosmicAudioEngine {
       gain.connect(this.ctx.destination);
       osc.start(now);
       osc.stop(now + 0.6);
-    } catch (e) {}
+    } catch (e) {
+      // Audio policy catch
+    }
   }
 }
 

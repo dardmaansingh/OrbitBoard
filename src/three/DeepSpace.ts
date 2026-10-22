@@ -1,23 +1,24 @@
 import * as THREE from 'three';
 
 export class DeepSpace {
-  constructor(scene) {
+  private scene: THREE.Scene;
+  private stars: THREE.Points | null = null;
+
+  constructor(scene: THREE.Scene) {
     this.scene = scene;
     this.createSparseStarfield();
   }
 
-  createSparseStarfield() {
-    const starCount = 1200; 
+  private createSparseStarfield(): void {
+    const starCount = 1200;
     const geometry = new THREE.BufferGeometry();
     const positions = new Float32Array(starCount * 3);
     const colors = new Float32Array(starCount * 3);
 
     const warmTint = new THREE.Color('#FFE9D0');
-    
     const coolTint = new THREE.Color('#CFE0FF');
 
     for (let i = 0; i < starCount; i++) {
-      
       const theta = Math.random() * Math.PI * 2;
       const phi = Math.acos(Math.random() * 2 - 1);
       const r = 450 + Math.random() * 350;
@@ -42,12 +43,14 @@ export class DeepSpace {
     canvas.width = 32;
     canvas.height = 32;
     const ctx = canvas.getContext('2d');
-    const grad = ctx.createRadialGradient(16, 16, 0, 16, 16, 16);
-    grad.addColorStop(0, 'rgba(255, 255, 255, 1)');
-    grad.addColorStop(0.35, 'rgba(255, 255, 255, 0.6)');
-    grad.addColorStop(1, 'rgba(255, 255, 255, 0)');
-    ctx.fillStyle = grad;
-    ctx.fillRect(0, 0, 32, 32);
+    if (ctx) {
+      const grad = ctx.createRadialGradient(16, 16, 0, 16, 16, 16);
+      grad.addColorStop(0, 'rgba(255, 255, 255, 1)');
+      grad.addColorStop(0.35, 'rgba(255, 255, 255, 0.6)');
+      grad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, 32, 32);
+    }
 
     const texture = new THREE.CanvasTexture(canvas);
     const material = new THREE.PointsMaterial({
@@ -63,18 +66,22 @@ export class DeepSpace {
     this.scene.add(this.stars);
   }
 
-  update(delta) {
+  public update(delta: number): void {
     if (this.stars) {
-      
       this.stars.rotation.y += delta * 0.001;
     }
   }
 
-  dispose() {
+  public dispose(): void {
     if (this.stars) {
       this.stars.geometry.dispose();
-      this.stars.material.dispose();
+      if (Array.isArray(this.stars.material)) {
+        this.stars.material.forEach(m => m.dispose());
+      } else {
+        this.stars.material.dispose();
+      }
       this.scene.remove(this.stars);
+      this.stars = null;
     }
   }
 }

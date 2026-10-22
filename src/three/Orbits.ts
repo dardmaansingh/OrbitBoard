@@ -1,15 +1,24 @@
 import * as THREE from 'three';
+import { RankedHabit } from '../types';
+
+export interface PlanetRadiusHolder {
+  currentRadius: number;
+}
 
 export class OrbitPathsManager {
-  constructor(scene) {
+  private scene: THREE.Scene;
+  private orbitMeshes: Map<string, THREE.Line<THREE.BufferGeometry, THREE.LineBasicMaterial>>;
+  private unitGeometry: THREE.BufferGeometry;
+
+  constructor(scene: THREE.Scene) {
     this.scene = scene;
-    this.orbitMeshes = new Map(); 
+    this.orbitMeshes = new Map();
     this.unitGeometry = this.createUnitCircleGeometry();
   }
 
-  createUnitCircleGeometry() {
+  private createUnitCircleGeometry(): THREE.BufferGeometry {
     const segments = 180;
-    const points = [];
+    const points: THREE.Vector3[] = [];
     for (let i = 0; i <= segments; i++) {
       const theta = (i / segments) * Math.PI * 2;
       points.push(new THREE.Vector3(Math.cos(theta), 0, Math.sin(theta)));
@@ -17,7 +26,11 @@ export class OrbitPathsManager {
     return new THREE.BufferGeometry().setFromPoints(points);
   }
 
-  updateOrbits(habits, selectedId, planetsMap) {
+  public updateOrbits(
+    habits: RankedHabit[],
+    selectedId: string | null,
+    planetsMap?: Map<string, PlanetRadiusHolder>
+  ): void {
     const currentIds = new Set(habits.map(h => h.id));
 
     for (const [id, mesh] of this.orbitMeshes.entries()) {
@@ -55,7 +68,7 @@ export class OrbitPathsManager {
         orbit.material.opacity = 0.28;
       } else {
         orbit.material.color.setHex(0xffffff);
-        orbit.material.opacity = 0.07; 
+        orbit.material.opacity = 0.07;
       }
 
       const planet = planetsMap ? planetsMap.get(habit.id) : null;
@@ -64,7 +77,7 @@ export class OrbitPathsManager {
     });
   }
 
-  syncRadii(planetsMap) {
+  public syncRadii(planetsMap?: Map<string, PlanetRadiusHolder>): void {
     if (!planetsMap) return;
     for (const [id, mesh] of this.orbitMeshes.entries()) {
       const planet = planetsMap.get(id);
@@ -74,7 +87,7 @@ export class OrbitPathsManager {
     }
   }
 
-  dispose() {
+  public dispose(): void {
     for (const [, mesh] of this.orbitMeshes.entries()) {
       this.scene.remove(mesh);
       mesh.material.dispose();
