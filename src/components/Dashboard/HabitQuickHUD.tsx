@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { useHabits } from '../../context/HabitContext';
 import { Check, ChevronDown, ChevronUp } from 'lucide-react';
+import { RankedHabit } from '../../types';
 
-export function HabitQuickHUD() {
+export function HabitQuickHUD(): React.ReactElement {
   const {
     habits,
     isHabitCompletedToday,
@@ -11,11 +12,10 @@ export function HabitQuickHUD() {
     selectedPlanetHabit
   } = useHabits();
 
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState<boolean>(false);
 
   return (
     <aside className="today-dock">
-
       <div className="dock-header">
         <div className="dock-title-group">
           <span className="dock-title">Today</span>
@@ -45,7 +45,7 @@ export function HabitQuickHUD() {
 
       {!isCollapsed && (
         <div className="dock-rows-tray">
-          {habits.map((habit) => {
+          {habits.map((habit: RankedHabit) => {
             const completed = isHabitCompletedToday(habit.id);
             const isSelected = selectedPlanetHabit?.id === habit.id;
 
@@ -56,7 +56,6 @@ export function HabitQuickHUD() {
                 style={{ borderLeftColor: habit.color }}
                 onClick={() => focusOnHabitPlanet(habit)}
               >
-
                 <div className="dock-row-left">
                   <span className="dock-row-rank">O{habit.rank}</span>
                   <span className="dock-row-name" title={habit.name}>
@@ -71,7 +70,7 @@ export function HabitQuickHUD() {
 
                   <button
                     className={`dock-checkbox ${completed ? 'checked' : ''}`}
-                    onClick={(e) => {
+                    onClick={(e: React.MouseEvent) => {
                       e.stopPropagation();
                       toggleHabitToday(habit.id);
                     }}

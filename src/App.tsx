@@ -11,30 +11,23 @@ import { CosmicAnalyticsModal } from './components/Analytics/CosmicAnalyticsModa
 import { CosmicCoachModal } from './components/AI/CosmicCoachModal';
 import { SpaceFeedModal } from './components/Feed/SpaceFeedModal';
 
-function OrbitBoardApp() {
+function OrbitBoardApp(): React.ReactElement {
   return (
     <div className="orbit-app-shell">
-
       <ThreeCanvas />
-
       <CosmicHeader />
-
       <CameraHUD />
-
       <HabitQuickHUD />
-
       <PlanetDetailDrawer />
-
       <HabitModal />
       <CosmicAnalyticsModal />
-
       {FEATURES.aiCoach && <CosmicCoachModal />}
       {FEATURES.spaceFeed && <SpaceFeedModal />}
     </div>
   );
 }
 
-export default function App() {
+export default function App(): React.ReactElement {
   return (
     <HabitProvider>
       <OrbitBoardApp />

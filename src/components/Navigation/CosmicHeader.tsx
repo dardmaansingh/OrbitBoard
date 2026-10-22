@@ -4,7 +4,7 @@ import { audioEngine } from '../../three/AudioEngine';
 import { FEATURES } from '../../config/features';
 import { Volume2, VolumeX, Plus, Sparkles, Users } from 'lucide-react';
 
-export function CosmicHeader() {
+export function CosmicHeader(): React.ReactElement {
   const {
     totalStreakSum,
     completedTodayCount,
@@ -14,9 +14,9 @@ export function CosmicHeader() {
     resetCameraToOverview
   } = useHabits();
 
-  const [isMuted, setIsMuted] = useState(false);
+  const [isMuted, setIsMuted] = useState<boolean>(false);
 
-  const toggleSound = () => {
+  const toggleSound = (): void => {
     const muted = audioEngine.toggleMute();
     setIsMuted(muted);
     if (!muted) {
@@ -26,7 +26,6 @@ export function CosmicHeader() {
 
   return (
     <header className="orbit-header">
-
       <div className="brand-section" onClick={resetCameraToOverview} title="Reset to solar center">
         <span className="brand-wordmark">OrbitBoard</span>
       </div>
@@ -49,7 +48,6 @@ export function CosmicHeader() {
       </div>
 
       <div className="header-actions">
-
         <button
           className="btn-icon"
           onClick={toggleSound}

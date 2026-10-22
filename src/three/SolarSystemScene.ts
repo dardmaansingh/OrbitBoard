@@ -4,21 +4,50 @@ import { SunModel } from './SunModel';
 import { PlanetModel } from './PlanetModel';
 import { OrbitPathsManager } from './Orbits';
 import { DeepSpace } from './DeepSpace';
+import { RankedHabit, SolarSystemSceneOptions } from '../types';
 
 export class SolarSystemScene {
-  constructor(container, options = {}) {
+  public container: HTMLElement;
+  public onPlanetClick: (habit: RankedHabit) => void;
+  public onPlanetHover: (info: RankedHabit | null) => void;
+
+  public planets: Map<string, PlanetModel>;
+  public activeFocusHabitId: string | null = null;
+  public isTrackingPlanet: boolean = false;
+
+  public cameraTargetPosition: THREE.Vector3 = new THREE.Vector3(0, 35, 60);
+  public controlsTargetPosition: THREE.Vector3 = new THREE.Vector3(0, 0, 0);
+  public isLerpingCamera: boolean = false;
+  public lerpSpeed: number = 0.045;
+
+  public scene!: THREE.Scene;
+  public camera!: THREE.PerspectiveCamera;
+  public renderer!: THREE.WebGLRenderer;
+  public controls!: OrbitControls;
+  public raycaster!: THREE.Raycaster;
+  public mouse!: THREE.Vector2;
+  public hoveredPlanetId: string | null = null;
+  public clock!: THREE.Clock;
+
+  public deepSpace!: DeepSpace;
+  public sun!: SunModel;
+  public orbitsManager!: OrbitPathsManager;
+
+  public habits: RankedHabit[] = [];
+  public completedChecker: ((id: string) => boolean) | null = null;
+  public selectedHabitId: string | null = null;
+
+  private animId: number = 0;
+  private onResize!: () => void;
+  private onMouseMove!: (e: MouseEvent) => void;
+  private onClick!: (e: MouseEvent) => void;
+
+  constructor(container: HTMLElement, options: SolarSystemSceneOptions = {}) {
     this.container = container;
     this.onPlanetClick = options.onPlanetClick || (() => {});
     this.onPlanetHover = options.onPlanetHover || (() => {});
 
-    this.planets = new Map(); 
-    this.activeFocusHabitId = null;
-    this.isTrackingPlanet = false;
-
-    this.cameraTargetPosition = new THREE.Vector3(0, 35, 60);
-    this.controlsTargetPosition = new THREE.Vector3(0, 0, 0);
-    this.isLerpingCamera = false;
-    this.lerpSpeed = 0.045;
+    this.planets = new Map();
 
     this.initScene();
     this.initControls();
@@ -28,9 +57,8 @@ export class SolarSystemScene {
     this.animate();
   }
 
-  initScene() {
+  private initScene(): void {
     this.scene = new THREE.Scene();
-    
     this.scene.background = null;
 
     const width = this.container.clientWidth;
@@ -55,7 +83,7 @@ export class SolarSystemScene {
     this.clock = new THREE.Clock();
   }
 
-  initControls() {
+  private initControls(): void {
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
     this.controls.enableDamping = true;
     this.controls.dampingFactor = 0.05;
@@ -63,30 +91,25 @@ export class SolarSystemScene {
     this.controls.maxDistance = 250;
     this.controls.maxPolarAngle = Math.PI * 0.88;
     this.controls.target.set(0, 0, 0);
-
-    this.controls.addEventListener('start', () => {
-      if (this.isTrackingPlanet) {
-        
-      }
-    });
   }
 
-  initRaycaster() {
+  private initRaycaster(): void {
     this.raycaster = new THREE.Raycaster();
     this.mouse = new THREE.Vector2(-999, -999);
     this.hoveredPlanetId = null;
   }
 
-  initObjects() {
-    
+  private initObjects(): void {
     this.deepSpace = new DeepSpace(this.scene);
-
     this.sun = new SunModel(this.scene);
-
     this.orbitsManager = new OrbitPathsManager(this.scene);
   }
 
-  syncHabits(habits, completedChecker, selectedHabitId) {
+  public syncHabits(
+    habits: RankedHabit[],
+    completedChecker: (id: string) => boolean,
+    selectedHabitId: string | null
+  ): void {
     this.habits = habits;
     this.completedChecker = completedChecker;
     this.selectedHabitId = selectedHabitId;
@@ -112,7 +135,7 @@ export class SolarSystemScene {
     this.orbitsManager.updateOrbits(habits, selectedHabitId, this.planets);
   }
 
-  focusPlanet(habitId) {
+  public focusPlanet(habitId: string): void {
     const planet = this.planets.get(habitId);
     if (!planet) return;
 
@@ -121,7 +144,7 @@ export class SolarSystemScene {
     this.isLerpingCamera = true;
   }
 
-  setCameraOverview() {
+  public setCameraOverview(): void {
     this.activeFocusHabitId = null;
     this.isTrackingPlanet = false;
     this.isLerpingCamera = true;
@@ -129,7 +152,7 @@ export class SolarSystemScene {
     this.controlsTargetPosition.set(0, 0, 0);
   }
 
-  setCameraTactical() {
+  public setCameraTactical(): void {
     this.activeFocusHabitId = null;
     this.isTrackingPlanet = false;
     this.isLerpingCamera = true;
@@ -137,7 +160,7 @@ export class SolarSystemScene {
     this.controlsTargetPosition.set(0, 0, 0);
   }
 
-  bindEvents() {
+  private bindEvents(): void {
     this.onResize = () => {
       if (!this.container) return;
       const width = this.container.clientWidth;
@@ -148,7 +171,7 @@ export class SolarSystemScene {
     };
     window.addEventListener('resize', this.onResize);
 
-    this.onMouseMove = (e) => {
+    this.onMouseMove = (e: MouseEvent) => {
       const rect = this.renderer.domElement.getBoundingClientRect();
       this.mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
       this.mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
@@ -156,7 +179,7 @@ export class SolarSystemScene {
     };
     this.renderer.domElement.addEventListener('mousemove', this.onMouseMove);
 
-    this.onClick = (e) => {
+    this.onClick = (e: MouseEvent) => {
       const rect = this.renderer.domElement.getBoundingClientRect();
       const clickX = ((e.clientX - rect.left) / rect.width) * 2 - 1;
       const clickY = -((e.clientY - rect.top) / rect.height) * 2 + 1;
@@ -165,9 +188,9 @@ export class SolarSystemScene {
     this.renderer.domElement.addEventListener('click', this.onClick);
   }
 
-  checkIntersection() {
+  private checkIntersection(): void {
     this.raycaster.setFromCamera(this.mouse, this.camera);
-    const meshes = [];
+    const meshes: THREE.Object3D[] = [];
     for (const [, planet] of this.planets) {
       if (planet.mesh) meshes.push(planet.mesh);
     }
@@ -178,11 +201,11 @@ export class SolarSystemScene {
       const habitId = hitMesh.userData.habitId;
       if (this.hoveredPlanetId !== habitId) {
         if (this.hoveredPlanetId && this.planets.has(this.hoveredPlanetId)) {
-          this.planets.get(this.hoveredPlanetId).setHighlight(false);
+          this.planets.get(this.hoveredPlanetId)!.setHighlight(false);
         }
         this.hoveredPlanetId = habitId;
         if (this.planets.has(habitId)) {
-          this.planets.get(habitId).setHighlight(true);
+          this.planets.get(habitId)!.setHighlight(true);
           const habit = hitMesh.userData.habit;
           this.onPlanetHover(habit);
         }
@@ -191,7 +214,7 @@ export class SolarSystemScene {
     } else {
       if (this.hoveredPlanetId) {
         if (this.planets.has(this.hoveredPlanetId)) {
-          this.planets.get(this.hoveredPlanetId).setHighlight(false);
+          this.planets.get(this.hoveredPlanetId)!.setHighlight(false);
         }
         this.hoveredPlanetId = null;
         this.onPlanetHover(null);
@@ -200,11 +223,11 @@ export class SolarSystemScene {
     }
   }
 
-  handleSceneClick(mouseX, mouseY) {
+  private handleSceneClick(mouseX: number, mouseY: number): void {
     const clickRay = new THREE.Raycaster();
     clickRay.setFromCamera(new THREE.Vector2(mouseX, mouseY), this.camera);
 
-    const meshes = [];
+    const meshes: THREE.Object3D[] = [];
     for (const [, planet] of this.planets) {
       if (planet.mesh) meshes.push(planet.mesh);
     }
@@ -219,7 +242,7 @@ export class SolarSystemScene {
     }
   }
 
-  animate = () => {
+  private animate = (): void => {
     this.animId = requestAnimationFrame(this.animate);
 
     const delta = this.clock.getDelta();
@@ -275,7 +298,7 @@ export class SolarSystemScene {
     this.renderer.render(this.scene, this.camera);
   };
 
-  dispose() {
+  public dispose(): void {
     cancelAnimationFrame(this.animId);
     window.removeEventListener('resize', this.onResize);
     this.renderer.domElement.removeEventListener('mousemove', this.onMouseMove);

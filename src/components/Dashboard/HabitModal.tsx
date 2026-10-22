@@ -1,8 +1,15 @@
 import React, { useState } from 'react';
 import { useHabits } from '../../context/HabitContext';
 import { X, Plus } from 'lucide-react';
+import { HabitCategory } from '../../types';
 
-const CATEGORIES = [
+interface CategoryOption {
+  name: HabitCategory;
+  color: string;
+  description: string;
+}
+
+const CATEGORIES: CategoryOption[] = [
   {
     name: 'Health',
     color: '#C1583A',
@@ -35,17 +42,17 @@ const CATEGORIES = [
   }
 ];
 
-export function HabitModal() {
+export function HabitModal(): React.ReactElement | null {
   const { activeModal, setActiveModal, addHabit } = useHabits();
 
-  const [name, setName] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState(CATEGORIES[0]);
-  const [frequency, setFrequency] = useState('Daily');
-  const [description, setDescription] = useState('');
+  const [name, setName] = useState<string>('');
+  const [selectedCategory, setSelectedCategory] = useState<CategoryOption>(CATEGORIES[0]);
+  const [frequency, setFrequency] = useState<string>('Daily');
+  const [description, setDescription] = useState<string>('');
 
   if (activeModal !== 'create') return null;
 
-  const handleSubmit = (e) => {
+  const handleSubmit = (e: React.FormEvent): void => {
     e.preventDefault();
     if (!name.trim()) return;
 
@@ -64,8 +71,7 @@ export function HabitModal() {
 
   return (
     <div className="modal-backdrop" onClick={() => setActiveModal(null)}>
-      <div className="modal-panel" onClick={(e) => e.stopPropagation()}>
-
+      <div className="modal-panel" onClick={(e: React.MouseEvent) => e.stopPropagation()}>
         <div className="modal-header">
           <h2 className="modal-title">New Planet</h2>
           <button
@@ -79,7 +85,6 @@ export function HabitModal() {
 
         <form onSubmit={handleSubmit}>
           <div className="modal-body">
-
             <div className="form-group">
               <label className="form-label">NAME</label>
               <input

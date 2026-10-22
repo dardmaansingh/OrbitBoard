@@ -1,8 +1,9 @@
 import React from 'react';
 import { useHabits, getMoonPhaseDetails } from '../../context/HabitContext';
 import { X, Check, Calendar, Trash2 } from 'lucide-react';
+import { RankedHabit } from '../../types';
 
-export function PlanetDetailDrawer() {
+export function PlanetDetailDrawer(): React.ReactElement | null {
   const {
     selectedPlanetHabit,
     setSelectedPlanetHabit,
@@ -15,17 +16,17 @@ export function PlanetDetailDrawer() {
 
   if (!selectedPlanetHabit) return null;
 
-  const habit = selectedPlanetHabit;
+  const habit: RankedHabit = selectedPlanetHabit;
   const isDoneToday = isHabitCompletedToday(habit.id);
   const heatmapDays = getYearlyHeatmap(habit.id);
   const moon = getMoonPhaseDetails();
 
-  const handleClose = () => {
+  const handleClose = (): void => {
     setSelectedPlanetHabit(null);
     resetCameraToOverview();
   };
 
-  const handleDelete = () => {
+  const handleDelete = (): void => {
     if (window.confirm(`Decommission planet orbit for "${habit.name}"?`)) {
       deleteHabit(habit.id);
     }
@@ -33,7 +34,6 @@ export function PlanetDetailDrawer() {
 
   return (
     <aside className="planet-drawer">
-
       <div className="drawer-header">
         <div className="drawer-meta-tags">
           <span
@@ -55,7 +55,6 @@ export function PlanetDetailDrawer() {
       </div>
 
       <div className="drawer-content">
-
         <div className="drawer-title-block">
           <h2 className="drawer-habit-title">{habit.name}</h2>
           <p className="drawer-habit-desc">

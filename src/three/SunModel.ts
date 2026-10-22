@@ -129,10 +129,21 @@ const CoronaWarmShader = {
 };
 
 export class SunModel {
-  constructor(scene) {
+  public scene: THREE.Scene;
+  public group: THREE.Group;
+  public radius: number = 4.2;
+  private uniforms!: { uTime: { value: number } };
+  private sunMaterial!: THREE.ShaderMaterial;
+  private coreMesh!: THREE.Mesh;
+  private innerCorona!: THREE.Mesh;
+  private outerCorona!: THREE.Mesh;
+  private haloSprite: THREE.Sprite | null = null;
+  private pointLight!: THREE.PointLight;
+  private ambientLight: THREE.AmbientLight | null = null;
+
+  constructor(scene: THREE.Scene) {
     this.scene = scene;
     this.group = new THREE.Group();
-    this.radius = 4.2;
 
     this.createCore();
     this.createWarmCoronas();
@@ -142,7 +153,7 @@ export class SunModel {
     this.scene.add(this.group);
   }
 
-  createCore() {
+  private createCore(): void {
     this.uniforms = {
       uTime: { value: 0.0 }
     };
@@ -159,7 +170,7 @@ export class SunModel {
     this.group.add(this.coreMesh);
   }
 
-  createWarmCoronas() {
+  private createWarmCoronas(): void {
     const innerGeo = new THREE.SphereGeometry(this.radius * 1.07, 48, 48);
     const innerMat = new THREE.ShaderMaterial({
       vertexShader: CoronaWarmShader.vertexShader,
@@ -193,20 +204,22 @@ export class SunModel {
     this.group.add(this.outerCorona);
   }
 
-  createWarmHalo() {
+  private createWarmHalo(): void {
     const canvas = document.createElement('canvas');
     canvas.width = 256;
     canvas.height = 256;
     const ctx = canvas.getContext('2d');
 
-    const grad = ctx.createRadialGradient(128, 128, 15, 128, 128, 128);
-    grad.addColorStop(0, 'rgba(255, 242, 220, 0.7)');
-    grad.addColorStop(0.25, 'rgba(242, 163, 58, 0.45)');
-    grad.addColorStop(0.65, 'rgba(181, 71, 27, 0.18)');
-    grad.addColorStop(1.0, 'rgba(181, 71, 27, 0.0)');
+    if (ctx) {
+      const grad = ctx.createRadialGradient(128, 128, 15, 128, 128, 128);
+      grad.addColorStop(0, 'rgba(255, 242, 220, 0.7)');
+      grad.addColorStop(0.25, 'rgba(242, 163, 58, 0.45)');
+      grad.addColorStop(0.65, 'rgba(181, 71, 27, 0.18)');
+      grad.addColorStop(1.0, 'rgba(181, 71, 27, 0.0)');
 
-    ctx.fillStyle = grad;
-    ctx.fillRect(0, 0, 256, 256);
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, 256, 256);
+    }
 
     const texture = new THREE.CanvasTexture(canvas);
     const spriteMat = new THREE.SpriteMaterial({
@@ -222,7 +235,7 @@ export class SunModel {
     this.group.add(this.haloSprite);
   }
 
-  createLight() {
+  private createLight(): void {
     this.pointLight = new THREE.PointLight(0xfff6dc, 3.2, 350, 0.5);
     this.pointLight.castShadow = true;
     this.pointLight.shadow.mapSize.width = 1024;
@@ -236,7 +249,7 @@ export class SunModel {
     this.ambientLight = ambientLight;
   }
 
-  update(delta) {
+  public update(delta: number): void {
     if (this.uniforms) {
       this.uniforms.uTime.value += delta;
     }
@@ -246,13 +259,21 @@ export class SunModel {
     }
   }
 
-  dispose() {
+  public dispose(): void {
     this.coreMesh.geometry.dispose();
     this.sunMaterial.dispose();
     this.innerCorona.geometry.dispose();
-    this.innerCorona.material.dispose();
+    if (Array.isArray(this.innerCorona.material)) {
+      this.innerCorona.material.forEach(m => m.dispose());
+    } else {
+      this.innerCorona.material.dispose();
+    }
     this.outerCorona.geometry.dispose();
-    this.outerCorona.material.dispose();
+    if (Array.isArray(this.outerCorona.material)) {
+      this.outerCorona.material.forEach(m => m.dispose());
+    } else {
+      this.outerCorona.material.dispose();
+    }
     if (this.haloSprite) {
       this.haloSprite.material.dispose();
     }

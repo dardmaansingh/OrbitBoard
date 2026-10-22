@@ -1,8 +1,9 @@
 import React from 'react';
 import { useHabits } from '../../context/HabitContext';
 import { X } from 'lucide-react';
+import { RankedHabit } from '../../types';
 
-export function CosmicAnalyticsModal() {
+export function CosmicAnalyticsModal(): React.ReactElement | null {
   const { activeModal, setActiveModal, habits, habitLogs } = useHabits();
 
   if (activeModal !== 'analytics') return null;
@@ -12,12 +13,11 @@ export function CosmicAnalyticsModal() {
     habits.reduce((acc, h) => acc + (h.monthlyCompletion ?? h.completionRate ?? 0), 0) / (habits.length || 1)
   );
 
-  const rankedHabits = [...habits].sort((a, b) => (a.rank || 0) - (b.rank || 0));
+  const rankedHabits: RankedHabit[] = [...habits].sort((a, b) => (a.rank || 0) - (b.rank || 0));
 
   return (
     <div className="modal-backdrop" onClick={() => setActiveModal(null)}>
-      <div className="modal-panel modal-panel-wide" onClick={(e) => e.stopPropagation()}>
-
+      <div className="modal-panel modal-panel-wide" onClick={(e: React.MouseEvent) => e.stopPropagation()}>
         <div className="modal-header">
           <h2 className="modal-title">Analytics</h2>
           <button
@@ -30,7 +30,6 @@ export function CosmicAnalyticsModal() {
         </div>
 
         <div className="modal-body">
-
           <div className="analytics-readout-line">
             <span className="readout-segment">
               <span className="readout-num">{totalLogs}</span> total logs

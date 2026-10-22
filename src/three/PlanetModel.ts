@@ -1,15 +1,16 @@
 import * as THREE from 'three';
 import { getCategoryColor } from '../utils/ranking';
+import { RankedHabit } from '../types';
 
-function easeOutCubic(x) {
+function easeOutCubic(x: number): number {
   return 1 - Math.pow(1 - x, 3);
 }
 
-function createTerranTexture(baseColorHex) {
+function createTerranTexture(baseColorHex: string): THREE.CanvasTexture {
   const canvas = document.createElement('canvas');
   canvas.width = 1024;
   canvas.height = 512;
-  const ctx = canvas.getContext('2d');
+  const ctx = canvas.getContext('2d')!;
 
   const oceanGrad = ctx.createLinearGradient(0, 0, 0, 512);
   oceanGrad.addColorStop(0, '#101726');
@@ -42,11 +43,11 @@ function createTerranTexture(baseColorHex) {
   return new THREE.CanvasTexture(canvas);
 }
 
-function createCloudsTexture() {
+function createCloudsTexture(): THREE.CanvasTexture {
   const canvas = document.createElement('canvas');
   canvas.width = 1024;
   canvas.height = 512;
-  const ctx = canvas.getContext('2d');
+  const ctx = canvas.getContext('2d')!;
   ctx.clearRect(0, 0, 1024, 512);
 
   ctx.fillStyle = 'rgba(235, 230, 220, 0.55)';
@@ -63,11 +64,11 @@ function createCloudsTexture() {
   return new THREE.CanvasTexture(canvas);
 }
 
-function createGasGiantTexture(colorA, colorB, stormColor) {
+function createGasGiantTexture(colorA: string, colorB: string, stormColor: string): THREE.CanvasTexture {
   const canvas = document.createElement('canvas');
   canvas.width = 1024;
   canvas.height = 512;
-  const ctx = canvas.getContext('2d');
+  const ctx = canvas.getContext('2d')!;
 
   const grad = ctx.createLinearGradient(0, 0, 0, 512);
   for (let y = 0; y <= 512; y += 32) {
@@ -92,11 +93,11 @@ function createGasGiantTexture(colorA, colorB, stormColor) {
   return new THREE.CanvasTexture(canvas);
 }
 
-function createCrateredTexture(baseColorHex, darkHex) {
+function createCrateredTexture(baseColorHex: string, darkHex: string): THREE.CanvasTexture {
   const canvas = document.createElement('canvas');
   canvas.width = 1024;
   canvas.height = 512;
-  const ctx = canvas.getContext('2d');
+  const ctx = canvas.getContext('2d')!;
 
   ctx.fillStyle = baseColorHex;
   ctx.fillRect(0, 0, 1024, 512);
@@ -120,17 +121,17 @@ function createCrateredTexture(baseColorHex, darkHex) {
   return new THREE.CanvasTexture(canvas);
 }
 
-function createRingsTexture(primaryColorHex, secondaryColorHex) {
+function createRingsTexture(primaryColorHex: string, secondaryColorHex: string): THREE.CanvasTexture {
   const canvas = document.createElement('canvas');
   canvas.width = 512;
   canvas.height = 64;
-  const ctx = canvas.getContext('2d');
+  const ctx = canvas.getContext('2d')!;
 
   const grad = ctx.createLinearGradient(0, 0, 512, 0);
   grad.addColorStop(0, 'rgba(0, 0, 0, 0)');
   grad.addColorStop(0.12, primaryColorHex);
   grad.addColorStop(0.45, secondaryColorHex);
-  grad.addColorStop(0.52, 'rgba(0, 0, 0, 0.1)'); 
+  grad.addColorStop(0.52, 'rgba(0, 0, 0, 0.1)');
   grad.addColorStop(0.58, primaryColorHex);
   grad.addColorStop(0.85, secondaryColorHex);
   grad.addColorStop(1.0, 'rgba(0, 0, 0, 0)');
@@ -142,7 +143,32 @@ function createRingsTexture(primaryColorHex, secondaryColorHex) {
 }
 
 export class PlanetModel {
-  constructor(scene, habitData) {
+  public scene: THREE.Scene;
+  public habit: RankedHabit;
+  public group: THREE.Group;
+
+  public orbitAngle: number;
+  public moonAngle: number;
+
+  public currentRadius: number;
+  public targetRadius: number;
+  public startRadius: number;
+  public transitionProgress: number;
+  public transitionDuration: number;
+
+  public baseRadius: number = 1.4;
+  public radius: number = 1.4;
+
+  public mesh!: THREE.Mesh;
+  public cloudsMesh?: THREE.Mesh;
+  public atmosphereMesh?: THREE.Mesh;
+  public ringsMesh?: THREE.Mesh;
+  public moonGroup?: THREE.Group;
+  public moonMesh?: THREE.Mesh;
+  public moonDistance: number = 0;
+  public auraMesh?: THREE.Mesh<THREE.RingGeometry, THREE.MeshBasicMaterial>;
+
+  constructor(scene: THREE.Scene, habitData: RankedHabit) {
     this.scene = scene;
     this.habit = habitData;
     this.group = new THREE.Group();
@@ -155,14 +181,15 @@ export class PlanetModel {
     this.targetRadius = initialRadius;
     this.startRadius = initialRadius;
     this.transitionProgress = 1.0;
-    this.transitionDuration = 1.5; 
+    this.transitionDuration = 1.5;
 
     this.initPlanet();
     this.scene.add(this.group);
   }
 
-  initPlanet() {
-    const { category, completionRate = 50, monthlyCompletion = 50, hasRings } = this.habit;
+  private initPlanet(): void {
+    const { category, completionRate = 50, monthlyCompletion = 50 } = this.habit;
+    const hasRings = (this.habit as any).hasRings;
     const categoryColor = getCategoryColor(category);
 
     const completion = monthlyCompletion != null ? monthlyCompletion : completionRate;
@@ -170,7 +197,7 @@ export class PlanetModel {
     this.baseRadius = 1.4;
     this.radius = this.baseRadius * scaleFactor;
 
-    let surfaceTexture;
+    let surfaceTexture: THREE.CanvasTexture;
     let roughness = 0.6;
     let metalness = 0.08;
 
@@ -178,31 +205,25 @@ export class PlanetModel {
       case 'Health':
       case 'Fitness':
       case 'Health / Fitness':
-        
         surfaceTexture = createCrateredTexture('#C1583A', '#722b18');
         roughness = 0.75;
         break;
       case 'Knowledge':
-        
         surfaceTexture = createGasGiantTexture('#5c3c13', '#D4A55A', '#8f6828');
         break;
       case 'Mindfulness':
-        
         surfaceTexture = createTerranTexture('#4E9F98');
         roughness = 0.45;
         break;
       case 'Focus':
-        
         surfaceTexture = createGasGiantTexture('#1b2d4b', '#4A6FA5', '#2a4369');
         roughness = 0.35;
         break;
       case 'Creativity':
-        
         surfaceTexture = createGasGiantTexture('#542431', '#B5667A', '#7a3b4c');
         break;
       case 'Other':
       default:
-        
         surfaceTexture = createGasGiantTexture('#4d3725', '#B08D6E', '#78563c');
         break;
     }
@@ -267,17 +288,16 @@ export class PlanetModel {
     }
 
     this.createNaturalMoon();
-
     this.createCompletionAura();
   }
 
-  createPlanetaryRings(primaryColorHex) {
+  private createPlanetaryRings(primaryColorHex: string): void {
     const innerRadius = this.radius * 1.45;
     const outerRadius = this.radius * 2.3;
     const ringGeo = new THREE.RingGeometry(innerRadius, outerRadius, 64);
 
     const pos = ringGeo.attributes.position;
-    const uvs = [];
+    const uvs: number[] = [];
     for (let i = 0; i < pos.count; i++) {
       const x = pos.getX(i);
       const y = pos.getY(i);
@@ -303,7 +323,7 @@ export class PlanetModel {
     this.group.add(this.ringsMesh);
   }
 
-  createNaturalMoon() {
+  private createNaturalMoon(): void {
     this.moonGroup = new THREE.Group();
     const moonRadius = this.radius * 0.22;
     const moonGeo = new THREE.SphereGeometry(moonRadius, 24, 24);
@@ -324,10 +344,10 @@ export class PlanetModel {
     this.group.add(this.moonGroup);
   }
 
-  createCompletionAura() {
+  private createCompletionAura(): void {
     const auraGeo = new THREE.RingGeometry(this.radius * 1.25, this.radius * 1.32, 48);
     const auraMat = new THREE.MeshBasicMaterial({
-      color: 0xf2a33a, 
+      color: 0xf2a33a,
       side: THREE.DoubleSide,
       transparent: true,
       opacity: 0.0
@@ -337,7 +357,7 @@ export class PlanetModel {
     this.group.add(this.auraMesh);
   }
 
-  setTargetRadius(newRadius) {
+  public setTargetRadius(newRadius: number): void {
     const target = Number(newRadius);
     if (!isNaN(target) && Math.abs(target - this.targetRadius) > 0.01) {
       this.startRadius = this.currentRadius;
@@ -346,7 +366,7 @@ export class PlanetModel {
     }
   }
 
-  updateHabitData(newHabit) {
+  public updateHabitData(newHabit: RankedHabit): void {
     this.habit = newHabit;
     if (newHabit.orbitDistance != null) {
       this.setTargetRadius(newHabit.orbitDistance);
@@ -364,8 +384,7 @@ export class PlanetModel {
     }
   }
 
-  update(delta, isCompletedToday) {
-    
+  public update(delta: number, isCompletedToday: boolean): void {
     if (this.transitionProgress < 1.0) {
       this.transitionProgress += delta / this.transitionDuration;
       if (this.transitionProgress > 1.0) {
@@ -407,35 +426,56 @@ export class PlanetModel {
     }
   }
 
-  setHighlight(isHighlighted) {
+  public setHighlight(isHighlighted: boolean): void {
     if (this.atmosphereMesh) {
       this.atmosphereMesh.scale.setScalar(isHighlighted ? 1.25 : 1.12);
     }
   }
 
-  getWorldPosition(targetVec) {
+  public getWorldPosition(targetVec: THREE.Vector3): THREE.Vector3 {
     return this.group.getWorldPosition(targetVec);
   }
 
-  dispose() {
+  public dispose(): void {
     this.mesh.geometry.dispose();
-    this.mesh.material.dispose();
+    if (Array.isArray(this.mesh.material)) {
+      this.mesh.material.forEach(m => m.dispose());
+    } else {
+      this.mesh.material.dispose();
+    }
+
     if (this.cloudsMesh) {
       this.cloudsMesh.geometry.dispose();
-      this.cloudsMesh.material.dispose();
+      if (Array.isArray(this.cloudsMesh.material)) {
+        this.cloudsMesh.material.forEach(m => m.dispose());
+      } else {
+        this.cloudsMesh.material.dispose();
+      }
     }
+
     if (this.atmosphereMesh) {
       this.atmosphereMesh.geometry.dispose();
-      this.atmosphereMesh.material.dispose();
+      if (Array.isArray(this.atmosphereMesh.material)) {
+        this.atmosphereMesh.material.forEach(m => m.dispose());
+      } else {
+        this.atmosphereMesh.material.dispose();
+      }
     }
+
     if (this.ringsMesh) {
       this.ringsMesh.geometry.dispose();
-      this.ringsMesh.material.dispose();
+      if (Array.isArray(this.ringsMesh.material)) {
+        this.ringsMesh.material.forEach(m => m.dispose());
+      } else {
+        this.ringsMesh.material.dispose();
+      }
     }
+
     if (this.auraMesh) {
       this.auraMesh.geometry.dispose();
       this.auraMesh.material.dispose();
     }
+
     this.scene.remove(this.group);
   }
 }

@@ -2,7 +2,7 @@ import React from 'react';
 import { useHabits } from '../../context/HabitContext';
 import { Eye, Grid, RotateCcw } from 'lucide-react';
 
-export function CameraHUD() {
+export function CameraHUD(): React.ReactElement {
   const { cameraMode, setCameraMode, resetCameraToOverview } = useHabits();
 
   return (

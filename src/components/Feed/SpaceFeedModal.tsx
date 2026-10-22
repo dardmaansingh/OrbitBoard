@@ -1,9 +1,28 @@
 import React, { useState } from 'react';
 import { useHabits } from '../../context/HabitContext';
-import { X, Users, Heart, MessageSquare, Send, Sparkles, Flame, Orbit } from 'lucide-react';
+import { X, Users, Heart, MessageSquare, Send, Flame } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
-const INITIAL_POSTS = [
+interface FeedComment {
+  author: string;
+  text: string;
+}
+
+interface FeedPost {
+  id: string;
+  author: string;
+  avatar: string;
+  category: string;
+  streakMilestone: number;
+  planet: string;
+  timeAgo: string;
+  content: string;
+  likes: number;
+  hasLiked: boolean;
+  comments: FeedComment[];
+}
+
+const INITIAL_POSTS: FeedPost[] = [
   {
     id: 'post-1',
     author: 'AstralCoder_99',
@@ -49,14 +68,14 @@ const INITIAL_POSTS = [
   }
 ];
 
-export function SpaceFeedModal() {
+export function SpaceFeedModal(): React.ReactElement | null {
   const { activeModal, setActiveModal, totalStreakSum } = useHabits();
-  const [posts, setPosts] = useState(INITIAL_POSTS);
-  const [newPostText, setNewPostText] = useState('');
+  const [posts, setPosts] = useState<FeedPost[]>(INITIAL_POSTS);
+  const [newPostText, setNewPostText] = useState<string>('');
 
   if (activeModal !== 'feed') return null;
 
-  const handleLike = (postId) => {
+  const handleLike = (postId: string): void => {
     setPosts(prev => prev.map(p => {
       if (p.id === postId) {
         const nextLiked = !p.hasLiked;
@@ -77,11 +96,11 @@ export function SpaceFeedModal() {
     }));
   };
 
-  const handleCreatePost = (e) => {
+  const handleCreatePost = (e: React.FormEvent): void => {
     e.preventDefault();
     if (!newPostText.trim()) return;
 
-    const newPost = {
+    const newPost: FeedPost = {
       id: `post-${Date.now()}`,
       author: 'You (Commander)',
       avatar: '🌟',
@@ -107,7 +126,7 @@ export function SpaceFeedModal() {
 
   return (
     <div className="modal-overlay" onClick={() => setActiveModal(null)}>
-      <div className="modal-dialog" style={{ maxWidth: '640px' }} onClick={(e) => e.stopPropagation()}>
+      <div className="modal-dialog" style={{ maxWidth: '640px' }} onClick={(e: React.MouseEvent) => e.stopPropagation()}>
         <div className="modal-header">
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <Users size={20} color="#34d399" />

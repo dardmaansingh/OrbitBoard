@@ -1,14 +1,22 @@
-import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo, ReactNode } from 'react';
 import confetti from 'canvas-confetti';
 import { audioEngine } from '../three/AudioEngine';
-import { rankHabits, getCategoryColor, calculateMonthlyCompletion } from '../utils/ranking';
+import { rankHabits, getCategoryColor } from '../utils/ranking';
+import {
+  Habit,
+  RankedHabit,
+  HabitLog,
+  CameraMode,
+  MoonPhaseDetails,
+  HabitContextType
+} from '../types';
 
-const HabitContext = createContext(null);
+const HabitContext = createContext<HabitContextType | null>(null);
 
-export function getMoonPhaseDetails(date = new Date()) {
+export function getMoonPhaseDetails(date: Date = new Date()): MoonPhaseDetails {
   const d = new Date(date);
   const refDate = new Date('2024-01-11T11:57:00Z');
-  const synodicMonth = 29.53058867; 
+  const synodicMonth = 29.53058867;
   const diffDays = (d.getTime() - refDate.getTime()) / (1000 * 60 * 60 * 24);
   const phaseValue = ((diffDays % synodicMonth) + synodicMonth) % synodicMonth;
 
@@ -44,8 +52,8 @@ export function getMoonPhaseDetails(date = new Date()) {
   return { phaseName, illumination, dayOfCycle: Math.floor(phaseValue) };
 }
 
-function generateSampleLogs(habitId, streak, completionRate) {
-  const logs = [];
+function generateSampleLogs(habitId: string, streak: number, completionRate: number = 50): HabitLog[] {
+  const logs: HabitLog[] = [];
   const today = new Date();
 
   for (let i = 0; i < streak; i++) {
@@ -75,7 +83,7 @@ function generateSampleLogs(habitId, streak, completionRate) {
   return logs;
 }
 
-const DEFAULT_HABITS = [
+const DEFAULT_HABITS: Habit[] = [
   {
     id: 'habit-1',
     name: 'Morning Running & Cardio',
@@ -109,7 +117,6 @@ const DEFAULT_HABITS = [
     bestStreak: 15,
     completionRate: 72,
     planetRadius: 1.5,
-    hasRings: true,
     createdAt: 1700000003000,
     description: 'Daily essay drafting, architecture sketching, and mental model journaling.'
   },
@@ -146,19 +153,22 @@ const DEFAULT_HABITS = [
     bestStreak: 45,
     completionRate: 96,
     planetRadius: 1.9,
-    hasRings: true,
     createdAt: 1700000006000,
     description: 'Reading high-signal books in computer science, philosophy, and history.'
   }
 ];
 
-export function HabitProvider({ children }) {
-  const [rawHabits, setRawHabits] = useState(() => {
+export interface HabitProviderProps {
+  children: ReactNode;
+}
+
+export function HabitProvider({ children }: HabitProviderProps): React.ReactElement {
+  const [rawHabits, setRawHabits] = useState<Habit[]>(() => {
     try {
       const saved = localStorage.getItem('orbitboard_habits_v3');
       if (saved) {
         const parsed = JSON.parse(saved);
-        return parsed.map(h => ({
+        return parsed.map((h: Habit) => ({
           ...h,
           color: getCategoryColor(h.category)
         }));
@@ -175,12 +185,12 @@ export function HabitProvider({ children }) {
     }
   });
 
-  const [habitLogs, setHabitLogs] = useState(() => {
+  const [habitLogs, setHabitLogs] = useState<HabitLog[]>(() => {
     try {
       const saved = localStorage.getItem('orbitboard_logs_v3');
       if (saved) return JSON.parse(saved);
 
-      const initialLogs = [];
+      const initialLogs: HabitLog[] = [];
       DEFAULT_HABITS.forEach(h => {
         initialLogs.push(...generateSampleLogs(h.id, h.streak, h.completionRate));
       });
@@ -190,9 +200,9 @@ export function HabitProvider({ children }) {
     }
   });
 
-  const [selectedPlanetHabit, setSelectedPlanetHabit] = useState(null);
-  const [cameraMode, setCameraMode] = useState('free');
-  const [activeModal, setActiveModal] = useState(null); 
+  const [selectedPlanetHabit, setSelectedPlanetHabit] = useState<RankedHabit | null>(null);
+  const [cameraMode, setCameraMode] = useState<CameraMode>('free');
+  const [activeModal, setActiveModal] = useState<string | null>(null);
 
   useEffect(() => {
     try {
@@ -221,17 +231,16 @@ export function HabitProvider({ children }) {
     return rankedHabits.find(h => h.id === selectedPlanetHabit.id) || selectedPlanetHabit;
   }, [selectedPlanetHabit, rankedHabits]);
 
-  const isHabitCompletedToday = (habitId) => {
+  const isHabitCompletedToday = (habitId: string): boolean => {
     return habitLogs.some(log => log.habitId === habitId && log.completedAt === todayStr);
   };
 
-  const toggleHabitToday = (habitId) => {
+  const toggleHabitToday = (habitId: string): void => {
     const isCompleted = isHabitCompletedToday(habitId);
 
     if (!isCompleted) {
-      
-      const newLog = {
-        id: `log_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
+      const newLog: HabitLog = {
+        id: `log_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
         habitId,
         completedAt: todayStr,
         notes: 'Logged today'
@@ -260,7 +269,6 @@ export function HabitProvider({ children }) {
         colors: ['#F2A33A', '#E8E4DC', '#7A4E16']
       });
     } else {
-      
       setHabitLogs(prev => prev.filter(log => !(log.habitId === habitId && log.completedAt === todayStr)));
       setRawHabits(prev => prev.map(h => {
         if (h.id === habitId) {
@@ -275,9 +283,12 @@ export function HabitProvider({ children }) {
     }
   };
 
-  const addHabit = (habitData) => {
-    const newHabit = {
+  const addHabit = (habitData: Partial<Habit>): void => {
+    const newHabit: Habit = {
       id: `habit-${Date.now()}`,
+      name: habitData.name || 'New Habit',
+      category: habitData.category || 'Other',
+      frequency: habitData.frequency || 'Daily',
       streak: 1,
       bestStreak: 1,
       completionRate: 50,
@@ -288,7 +299,7 @@ export function HabitProvider({ children }) {
 
     setRawHabits(prev => [...prev, newHabit]);
 
-    const initialLog = {
+    const initialLog: HabitLog = {
       id: `log_${Date.now()}`,
       habitId: newHabit.id,
       completedAt: todayStr,
@@ -299,7 +310,7 @@ export function HabitProvider({ children }) {
     audioEngine.playCompletionChime();
   };
 
-  const deleteHabit = (habitId) => {
+  const deleteHabit = (habitId: string): void => {
     setRawHabits(prev => prev.filter(h => h.id !== habitId));
     setHabitLogs(prev => prev.filter(log => log.habitId !== habitId));
     if (selectedPlanetHabit?.id === habitId) {
@@ -307,15 +318,15 @@ export function HabitProvider({ children }) {
     }
   };
 
-  const getYearlyHeatmap = (habitId) => {
-    const datesMap = {};
+  const getYearlyHeatmap = (habitId: string): Array<{ date: string; count: number; level: number; dayOfWeek: number }> => {
+    const datesMap: Record<string, number> = {};
     habitLogs
       .filter(l => l.habitId === habitId)
       .forEach(l => {
         datesMap[l.completedAt] = (datesMap[l.completedAt] || 0) + 1;
       });
 
-    const days = [];
+    const days: Array<{ date: string; count: number; level: number; dayOfWeek: number }> = [];
     const now = new Date();
     for (let i = 364; i >= 0; i--) {
       const d = new Date(now);
@@ -332,13 +343,13 @@ export function HabitProvider({ children }) {
     return days;
   };
 
-  const focusOnHabitPlanet = (habit) => {
+  const focusOnHabitPlanet = (habit: RankedHabit): void => {
     setSelectedPlanetHabit(habit);
     audioEngine.playPlanetZoomSound();
     setCameraMode('focus');
   };
 
-  const resetCameraToOverview = () => {
+  const resetCameraToOverview = (): void => {
     setSelectedPlanetHabit(null);
     setCameraMode('solar');
   };
@@ -377,7 +388,7 @@ export function HabitProvider({ children }) {
   );
 }
 
-export function useHabits() {
+export function useHabits(): HabitContextType {
   const context = useContext(HabitContext);
   if (!context) {
     throw new Error('useHabits must be used within a HabitProvider');

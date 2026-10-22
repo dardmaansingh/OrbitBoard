@@ -12,7 +12,7 @@ export function ThreeCanvas(): React.ReactElement {
     selectedPlanetHabit,
     focusOnHabitPlanet,
     cameraMode
-  } = useHabits() as unknown as HabitContextType;
+  } = useHabits();
 
   const [tooltip, setTooltip] = useState<TooltipState>({
     visible: false,

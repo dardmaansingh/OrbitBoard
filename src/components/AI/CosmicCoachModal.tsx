@@ -1,26 +1,31 @@
 import React, { useState } from 'react';
 import { useHabits } from '../../context/HabitContext';
-import { X, Sparkles, Send, Bot, RefreshCw, Compass, Lightbulb, Zap } from 'lucide-react';
+import { X, Sparkles, Send, Bot, RefreshCw, Lightbulb, Zap } from 'lucide-react';
 
-export function CosmicCoachModal() {
+interface ChatMessage {
+  role: 'assistant' | 'user';
+  text: string;
+}
+
+export function CosmicCoachModal(): React.ReactElement | null {
   const { activeModal, setActiveModal, habits, totalStreakSum } = useHabits();
-  const [mode, setMode] = useState('cosmic'); 
-  const [messages, setMessages] = useState(() => [
+  const [mode, setMode] = useState<'cosmic' | 'practical'>('cosmic');
+  const [messages, setMessages] = useState<ChatMessage[]>(() => [
     {
       role: 'assistant',
       text: `Greetings, Commander of the Cosmos. I have scanned your solar system coordinates. You have ${habits.length} planets in stable orbit, anchored by a total gravitational streak of ${totalStreakSum} days. How can I guide your planetary orbits today?`
     }
   ]);
-  const [inputText, setInputText] = useState('');
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [inputText, setInputText] = useState<string>('');
+  const [isAnalyzing, setIsAnalyzing] = useState<boolean>(false);
 
   if (activeModal !== 'ai') return null;
 
-  const handleGenerateAdvice = (userQuery) => {
+  const handleGenerateAdvice = (userQuery?: string): void => {
     setIsAnalyzing(true);
 
-    const lowestHabit = [...habits].sort((a, b) => a.completionRate - b.completionRate)[0];
-    const highestHabit = [...habits].sort((a, b) => b.streak - a.streak)[0];
+    const lowestHabit = [...habits].sort((a, b) => (a.completionRate || 0) - (b.completionRate || 0))[0] || { name: 'Focus', streak: 0, completionRate: 50 };
+    const highestHabit = [...habits].sort((a, b) => (b.streak || 0) - (a.streak || 0))[0] || { name: 'Coding', streak: 0, completionRate: 50 };
 
     setTimeout(() => {
       let adviceText = '';
@@ -48,7 +53,7 @@ export function CosmicCoachModal() {
 
   return (
     <div className="modal-overlay" onClick={() => setActiveModal(null)}>
-      <div className="modal-dialog" style={{ maxWidth: '640px' }} onClick={(e) => e.stopPropagation()}>
+      <div className="modal-dialog" style={{ maxWidth: '640px' }} onClick={(e: React.MouseEvent) => e.stopPropagation()}>
         <div className="modal-header">
           <div className="flex items-center gap-2">
             <Sparkles size={18} className="text-slate-400" />
@@ -131,7 +136,7 @@ export function CosmicCoachModal() {
 
         <div className="modal-footer">
           <form
-            onSubmit={(e) => {
+            onSubmit={(e: React.FormEvent) => {
               e.preventDefault();
               if (inputText.trim()) handleGenerateAdvice(inputText);
             }}

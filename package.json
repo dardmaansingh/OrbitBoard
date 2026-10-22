@@ -20,6 +20,7 @@
   "devDependencies": {
     "@rollup/wasm-node": "^4.63.5",
     "@tailwindcss/vite": "^4.3.3",
+    "@types/canvas-confetti": "^1.9.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "@types/three": "^0.174.0",
